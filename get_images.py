@@ -18,10 +18,9 @@ def put_images(FILE_NAME):
     imgNum = 0
     for url in enumerate(urls):
 
-        numToAdd = random.randint(3, 10)
+        numToAdd = random.randint(3, 8)
         rootPath = os.path.join(os.getcwd(),FILE_NAME.split("_")[0])
         rootPath += "/" + str(imgNum)
-        print(rootPath)
         if not os.path.isdir(rootPath):
             os.mkdir(FILE_NAME.split("_")[0] + "/" + str(imgNum))
         for i in range(numToAdd):
@@ -31,7 +30,6 @@ def put_images(FILE_NAME):
                 path_to_write=os.path.join(os.getcwd(),FILE_NAME.split("_")[0],str(imgNum) + "/", url[1].split("/")[-1])
                 strList = path_to_write.split(".jpg")
                 path_to_write = strList[0] + "_" + str(i) + ".jpg"
-                print(path_to_write)
                 outfile=open(path_to_write,'wb')
                 outfile.write(resp.content)
                 outfile.close()
@@ -39,10 +37,6 @@ def put_images(FILE_NAME):
             except:
                 print("Failed to download url number {}".format(url[0]))
 
-        imgNum += 1
-        
-        if imgNum == 5:
-            break
 
     t1=time.time()
     print("Done with download, job took {} seconds".format(t1-t0))
