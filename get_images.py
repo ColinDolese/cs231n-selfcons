@@ -39,6 +39,7 @@ def put_images(FILE_NAME):
 
         imgNum += 1
 
+
     t1=time.time()
     print("Done with download, job took {} seconds".format(t1-t0))
 def main():

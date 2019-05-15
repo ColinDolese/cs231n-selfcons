@@ -60,6 +60,11 @@ def getAttributes():
     #     attribute2index[key] = index
     #     index += 1
 
+    if img_count >= 1000:
+        break
+
+    print("Image Count is " + str(img_count))
+    print("Attribute Count is " + str(len(attribute_dict.keys())))
     return img_count, len(attribute_dict.keys())
 
 # def attr2ind(attribute):
@@ -77,5 +82,5 @@ def getAttributes():
 
 #     return vec
 
-getAttributes()
+#getAttributes()
 
