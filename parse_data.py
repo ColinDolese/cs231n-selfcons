@@ -15,6 +15,7 @@ def getAttributes():
 
     img_count = 0
     for f in os.listdir(path):
+        print("Loading image " + str(img_count))
         if f == ".DS_Store":
             continue
         imgDir = os.listdir(os.path.join(path,f))
