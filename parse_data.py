@@ -58,7 +58,7 @@ def getAttributes():
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():
-        if val >= 50:
+        if val >= 300:
             num_atts += 1
         index += 1
 
