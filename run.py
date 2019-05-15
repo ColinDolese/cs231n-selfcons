@@ -60,17 +60,18 @@ def check_accuracy(loader, model):
                 continue
 
             x = torch.reshape(x, (N//2, 2, C, H, W))
-            y = torch.reshape(y, (N//2, 2)).permute(1,0)
+            y = torch.reshape(y, (N//2, 2))
 
             classScores, exifScores = model(x)
 
             exifTarget = []
-            print(y.shape)
             for pair in torch.split(y, split_size_or_sections=1):
             	exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
             	exifTarget.append(exifVec)
             exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
 
+            y = y.permute(1,0)
+            
             exifPreds = exifScores.round()
             exifPreds = exifPreds.reshape(exifPreds.size(0), -1)
             print(exifTarget.shape)
@@ -118,7 +119,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
                 continue
 
             x = torch.reshape(x, (N//2, 2, C, H, W))
-            y = torch.reshape(y, (N//2, 2)).permute(1,0)  
+            y = torch.reshape(y, (N//2, 2))
             classScores, exifScores = model(x)
 
             exifTarget = []
@@ -126,6 +127,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             	exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
             	exifTarget.append(exifVec)
 
+            y = y.permute(1,0)
             exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
             exifLoss = lossFunc(exifScores, exifTarget)
             classTarget = y[0] == y[1]
