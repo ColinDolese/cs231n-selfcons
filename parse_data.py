@@ -19,7 +19,6 @@ def getAttributes():
     for f in os.listdir(path):
         print("Loading image " + str(img_count))
         if f == ".DS_Store":
-            print("is ds_store")
             continue
         imgDir = os.listdir(os.path.join(path,f))
         img_count += len(imgDir)
@@ -47,7 +46,6 @@ def getAttributes():
         # #exifs.append(exif_dict)
         fl = open(os.path.join(path,f,j), 'rb')
         tags = exifread.process_file(fl)
-        print(len(tags.keys()))
         for tag in tags.keys():
             if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
                 attribute = tag
@@ -62,7 +60,7 @@ def getAttributes():
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():
-        if val >= 200:
+        if val >= 50:
             num_atts += 1
         index += 1
 
