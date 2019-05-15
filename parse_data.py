@@ -16,9 +16,6 @@ def getAttributes():
     img_count = 0
     for f in os.listdir(path):
         print("Loading image " + str(img_count))
-        if img_count == 14344:
-            img_count -= 1
-            continue
         if f == ".DS_Store":
             continue
         imgDir = os.listdir(os.path.join(path,f))
@@ -30,6 +27,7 @@ def getAttributes():
         im = Image.open(os.path.join(path,f,j))
         if "exif" not in im.info:
             continue
+        print(im.info)
         exif_dict = piexif.load(im.info["exif"])
         #for ifd in ("0th", "Exif", "GPS", "1st"):
         for ifd in (["Exif"]):
