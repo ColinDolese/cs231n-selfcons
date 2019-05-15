@@ -2,6 +2,8 @@ from PIL import Image
 import piexif
 import os, os.path
 import numpy as np
+import exifread
+
 
 #exifs = []
 path = "./FlickrCentral"
@@ -24,31 +26,39 @@ def getAttributes():
         ext = os.path.splitext(j)[1]
         if ext.lower() not in valid_images:
             continue
-        im = Image.open(os.path.join(path,f,j))
-        if "exif" not in im.info:
-            continue
-        print(im.info)
-        exif_dict = piexif.load(im.info["exif"])
-        #for ifd in ("0th", "Exif", "GPS", "1st"):
-        for ifd in (["Exif"]):
-            for tag in exif_dict[ifd]:
-                #attribute = ifd + "_" + str(tag) + "_" + piexif.TAGS[ifd][tag]["name"] 
-                attribute = piexif.TAGS[ifd][tag]["name"] 
-                value = exif_dict[ifd][tag]
-                #print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
+        # im = Image.open(os.path.join(path,f,j))
+        # if "exif" not in im.info:
+        #     continue
+        # exif_dict = piexif.load(im.info["exif"])
+        # #for ifd in ("0th", "Exif", "GPS", "1st"):
+        # for ifd in (["Exif"]):
+        #     for tag in exif_dict[ifd]:
+        #         #attribute = ifd + "_" + str(tag) + "_" + piexif.TAGS[ifd][tag]["name"] 
+        #         attribute = piexif.TAGS[ifd][tag]["name"] 
+        #         value = exif_dict[ifd][tag]
+        #         #print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
 
+        #         if attribute not in attribute_dict:
+        #             attribute_dict[attribute] = 0
+
+        #         attribute_dict[attribute] += 1
+        # #exifs.append(exif_dict)
+        fl = open(os.path.join(path,f,j), 'rb')
+        tags = exifread.process_file(fl)
+        for tag in tags.keys():
+            if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
+                attribute = tag
                 if attribute not in attribute_dict:
                     attribute_dict[attribute] = 0
 
                 attribute_dict[attribute] += 1
-        #exifs.append(exif_dict)
         
 
-    index = 0
-    for key, val in attribute_dict.items():
-        index2attribute[index] = key
-        attribute2index[key] = index
-        index += 1
+    # index = 0
+    # for key, val in attribute_dict.items():
+    #     index2attribute[index] = key
+    #     attribute2index[key] = index
+    #     index += 1
 
     return img_count, len(attribute_dict.keys())
 
@@ -67,5 +77,5 @@ def getAttributes():
 
 #     return vec
 
-# getAttributes()
+getAttributes()
 
