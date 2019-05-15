@@ -85,5 +85,5 @@ def getAttributes():
 
 #     return vec
 
-#getAttributes()
+getAttributes()
 
