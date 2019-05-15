@@ -19,6 +19,7 @@ def getAttributes():
     for f in os.listdir(path):
         print("Loading image " + str(img_count))
         if f == ".DS_Store":
+            print("is ds_store")
             continue
         imgDir = os.listdir(os.path.join(path,f))
         img_count += len(imgDir)
@@ -60,7 +61,7 @@ def getAttributes():
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():
-        if val > 200:
+        if val >= 200:
             num_atts += 1
         index += 1
 
