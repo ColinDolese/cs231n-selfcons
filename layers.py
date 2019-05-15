@@ -21,7 +21,8 @@ class PatchClassifier(nn.Module):
         super(PatchClassifier, self).__init__()
         self.mlp = nn.Sequential(
             nn.Linear(exifSize, 512, bias=True),
-            nn.Linear(512, 1, nn.Linear(512, 1)),
+            nn.ReLU(),
+            nn.Linear(512, 1, bias=True),
             nn.Sigmoid())
 
 
@@ -36,9 +37,12 @@ class SiameseNet(nn.Module):
       self.resnet = models.resnet50(pretrained=True)
       self.mlp = nn.Sequential(
             nn.Linear(2000, 1048, bias=True),
+            nn.ReLU(),
             nn.Linear(1048, 624, bias=True),
+            nn.ReLU(),
             nn.Linear(624, 312, bias=True),
-            nn.Linear(312, exifSize),
+            nn.ReLU(),
+            nn.Linear(312, exifSize, bias=True),
             nn.Sigmoid())
 
       self.mlp.apply(init_weights)

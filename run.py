@@ -158,6 +158,7 @@ def main():
     lr = 1e-4
     optimizer = optim.Adam(model.parameters(), lr=lr)
     train(model, optimizer, loader_train, loader_val, epochs=epochs)
+    print("----------- Testing -----------")
     check_accuracy(loader_test, model)
 
 if __name__ == '__main__':
