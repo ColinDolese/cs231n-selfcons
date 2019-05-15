@@ -19,22 +19,14 @@ def init_weights(m):
 class PatchClassifier(nn.Module):
     def __init__(self, exifSize):
         super(PatchClassifier, self).__init__()
-        self.mlp1 = nn.Sequential(
-            nn.Linear(exifSize, 512),
-            nn.ReLU())
+        self.mlp = nn.Sequential(
+            nn.Linear(exifSize, 512, bias=True),
+            nn.Linear(512, 1, nn.Linear(512, 1)),
+            nn.Sigmoid())
 
-        self.mlp1.apply(init_weights)
-        self.mlp2 = nn.Sequential(
-            nn.Linear(512, 1),
-            nn.ReLU())
-
-        self.mlp2.apply(init_weights)
-
-        self.sig = nn.Sigmoid()
 
     def forward(self, x):
-        x = self.mlp1(x)
-        x = self.mlp2(x)
+        x = self.mlp(x)
         return x
 
 
@@ -42,26 +34,14 @@ class SiameseNet(nn.Module):
    def __init__(self, exifSize):
       super(SiameseNet, self).__init__()
       self.resnet = models.resnet50(pretrained=True)
-      self.mlp1 = nn.Sequential(
-            nn.Linear(2000, 1048),
-            nn.ReLU())
-
-      self.mlp1.apply(init_weights)
-      self.mlp2 = nn.Sequential(
-            nn.Linear(1048, 624),
-            nn.ReLU())
-
-      self.mlp2.apply(init_weights)
-      self.mlp3 = nn.Sequential(
-            nn.Linear(624, 312),
-            nn.ReLU())
-
-      self.mlp3.apply(init_weights)
-      self.mlp4 = nn.Sequential(
+      self.mlp = nn.Sequential(
+            nn.Linear(2000, 1048, bias=True),
+            nn.Linear(1048, 624, bias=True),
+            nn.Linear(624, 312, bias=True),
             nn.Linear(312, exifSize),
-            nn.ReLU(),
             nn.Sigmoid())
-      self.mlp4.apply(init_weights)
+
+      self.mlp.apply(init_weights)
 
 
    def forward(self, x):
@@ -73,8 +53,5 @@ class SiameseNet(nn.Module):
             res.append(x_i)
 
         x = torch.stack(res) 
-        x = self.mlp1(x)
-        x = self.mlp2(x)
-        x = self.mlp3(x)
-        x = self.mlp4(x)
+        x = self.mlp(x)
         return x
