@@ -138,6 +138,7 @@ def main():
 
     img_data = ExifTrainDataset()
 
+    print("----------- Loading Data -----------")
     loader_train = DataLoader(img_data, batch_size=batch_size, 
                               sampler=sampler.SubsetRandomSampler(range(trainEnd)))
 
@@ -148,6 +149,7 @@ def main():
     loader_test = DataLoader(img_data, batch_size=batch_size, 
                             sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
 
+    print("----------- Finished Loading Data -----------")
     model = SelfConsistency(numAttributes)
     lr = 1e-4
     optimizer = optim.Adam(model.parameters(), lr=lr)
