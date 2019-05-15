@@ -111,7 +111,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             y = y.to(device=device, dtype=torch.float)
             N, C, H, W = x.shape
 
-            if (N // 2) % 2 != 0:
+            if (N / 2) % 2 != 0:
                 continue
 
             x = torch.reshape(x, (N//2, 2, C, H, W))

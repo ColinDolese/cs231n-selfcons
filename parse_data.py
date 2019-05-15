@@ -32,7 +32,6 @@ def getAttributes():
         fl = open(os.path.join(path,f,j), 'rb')
         tags = exifread.process_file(fl)
         exifs.append(tags)
-        print("--------------------- appended tags")
         for tag in tags.keys():
             if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
                 attribute = tag
