@@ -148,7 +148,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             # computed by the backwards pass.
             optimizer.step()
 
-            if t % 2 == 0:
+            if t % 10 == 0:
                 check_accuracy(loader_val, model)
                 print()
 

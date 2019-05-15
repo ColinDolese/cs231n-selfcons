@@ -47,7 +47,7 @@ def getAttributes():
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():
-        if val >= 1:
+        if val >= 10:
             attribute2index[key] = index
             num_atts += 1
             index += 1
@@ -55,7 +55,6 @@ def getAttributes():
 
     print("Image Count is " + str(img_count))
     print("Attribute Count is " + str(num_atts))
-    print(len(exifs))
     return img_count, num_atts
 
 def attr2ind(attribute):
