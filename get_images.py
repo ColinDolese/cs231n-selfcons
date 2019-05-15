@@ -18,7 +18,7 @@ def put_images(FILE_NAME):
     imgNum = 0
     for url in enumerate(urls):
 
-        numToAdd = random.randint(3, 8)
+        numToAdd = random.randint(25, 50)
         rootPath = os.path.join(os.getcwd(),FILE_NAME.split("_")[0])
         rootPath += "/" + str(imgNum)
         if not os.path.isdir(rootPath):
@@ -38,6 +38,8 @@ def put_images(FILE_NAME):
                 print("Failed to download url number {}".format(url[0]))
 
         imgNum += 1
+        if imgNum == 1000:
+            break
 
 
     t1=time.time()
