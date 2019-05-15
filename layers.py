@@ -32,17 +32,19 @@ class SiameseNet(nn.Module):
    def __init__(self, exifSize):
       super(SiameseNet, self).__init__()
       self.resnet = models.resnet50(pretrained=True)
-      self.mlp1 = nn.Sequential(
-            nn.Linear(2000, 1000),
-            nn.ReLU())
-      self.mlp2 = nn.Sequential(
-            nn.Linear(1000, 500),
-            nn.ReLU())
-      self.mlp3 = nn.Sequential(
-            nn.Linear(500, 250),
-            nn.ReLU())
-      self.fc = nn.Linear(250, exifSize)
-      self.sig = nn.Sigmoid()
+      # self.mlp1 = nn.Sequential(
+      #       nn.Linear(2000, 1000),
+      #       nn.ReLU())
+      # self.mlp2 = nn.Sequential(
+      #       nn.Linear(1000, 500),
+      #       nn.ReLU())
+      # self.mlp3 = nn.Sequential(
+      #       nn.Linear(500, 250),
+      #       nn.ReLU())
+      self.mlp4 = nn.Sequential(
+            nn.Linear(2000, exifSize),
+            nn.ReLU(),
+            nn.Sigmoid())
 
    def forward(self, x):
         res = []
@@ -53,9 +55,8 @@ class SiameseNet(nn.Module):
             res.append(x_i)
 
         x = torch.stack(res) 
-        x = self.mlp1(x)
-        x = self.mlp2(x)
-        x = self.mlp3(x)
-        x = self.fc(x)
-        x = self.sig(x)
+        # x = self.mlp1(x)
+        # x = self.mlp2(x)
+        # x = self.mlp3(x)
+        x = self.mlp4(x)
         return x
