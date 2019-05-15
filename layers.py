@@ -36,13 +36,13 @@ class SiameseNet(nn.Module):
       super(SiameseNet, self).__init__()
       self.resnet = models.resnet50(pretrained=True)
       self.mlp = nn.Sequential(
-            nn.Linear(2000, 1048, bias=True),
-            nn.ReLU(),
-            nn.Linear(1048, 624, bias=True),
-            nn.ReLU(),
-            nn.Linear(624, 312, bias=True),
-            nn.ReLU(),
-            nn.Linear(312, exifSize, bias=True),
+            # nn.Linear(2000, 1048, bias=True),
+            # nn.ReLU(),
+            # nn.Linear(1048, 624, bias=True),
+            # nn.ReLU(),
+            # nn.Linear(624, 312, bias=True),
+            # nn.ReLU(),
+            nn.Linear(2000, exifSize, bias=True),
             nn.Sigmoid())
 
       self.mlp.apply(init_weights)
