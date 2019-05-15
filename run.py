@@ -65,6 +65,7 @@ def check_accuracy(loader, model):
             classScores, exifScores = model(x)
 
             exifTarget = []
+            print(y.shape)
             for pair in torch.split(y, split_size_or_sections=1):
             	exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
             	exifTarget.append(exifVec)
