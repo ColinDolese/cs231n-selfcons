@@ -101,6 +101,8 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             scores = torch.reshape(scores, target.shape)
             loss = F.binary_cross_entropy(scores, target)
 
+            print("Loss: " + str(loss))
+
             # Zero out all of the gradients for the variables which the optimizer
             # will update.
             optimizer.zero_grad()
