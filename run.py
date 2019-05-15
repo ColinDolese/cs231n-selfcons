@@ -82,6 +82,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
     """
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
+    	print("----------- Starting  Epoch " + str(e) + " -----------")
         for t, (x, y, i) in enumerate(loader_train):
             print('Iteration %d' % (t))
             model.train()  # put model to training mode
@@ -124,8 +125,9 @@ def main():
     batch_size = int(sys.argv[1])
     epochs = int(sys.argv[2])
 
+    print("----------- Starting Attribute Search -----------")
     numImages, numAttributes = parse_data.getAttributes()
-
+    print("----------- Finished Attribute Search -----------")
     trainEnd = numImages // 2
 
     valStart = (numImages // 2) + 1
