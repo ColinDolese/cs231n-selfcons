@@ -65,7 +65,7 @@ def getAttributes():
 
 
     print("Image Count is " + str(img_count))
-    print("Attribute Count is " + num_atts)
+    print("Attribute Count is " + str(num_atts))
     return img_count, num_atts
 
 # def attr2ind(attribute):
