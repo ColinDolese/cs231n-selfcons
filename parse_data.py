@@ -25,6 +25,7 @@ def getAttributes():
         j = imgDir[0]
         ext = os.path.splitext(j)[1]
         if ext.lower() not in valid_images:
+            print("not valid")
             continue
         # im = Image.open(os.path.join(path,f,j))
         # if "exif" not in im.info:
