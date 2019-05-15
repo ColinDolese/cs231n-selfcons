@@ -72,6 +72,8 @@ def check_accuracy(loader, model):
 
             exifPreds = exifScores.round()
             exifPreds = exifPreds.reshape(exifPreds.size(0), -1)
+            print(exifTarget.shape)
+            print(exifPreds.shape)
             num_correct_exif += (exifPreds == exifTarget).sum()
             num_samples_exif += (exifPreds.size(0) * exifPreds.size(1))
 
