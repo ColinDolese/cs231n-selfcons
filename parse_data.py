@@ -17,6 +17,7 @@ def getAttributes():
     for f in os.listdir(path):
         print("Loading image " + str(img_count))
         if img_count == 14344:
+            img_count -= 1
             continue
         if f == ".DS_Store":
             continue
