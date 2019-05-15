@@ -99,6 +99,8 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             target = y[0] == y[1]
             target = target.to(device=device, dtype=torch.float)
             scores = torch.reshape(scores, target.shape)
+            print(scores)
+            print(target)
             loss = F.binary_cross_entropy(scores, target)
 
             print("Loss: " + str(loss))
