@@ -44,6 +44,8 @@ class ExifTrainDataset(torch.utils.data.Dataset):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 dtype = torch.float
 def check_accuracy(loader, model):
+    num_correct_exif = 0
+    num_samples_exif = 0
     num_correct = 0
     num_samples = 0
     model.eval()  # set model to evaluation mode
@@ -60,15 +62,31 @@ def check_accuracy(loader, model):
             x = torch.reshape(x, (N//2, 2, C, H, W))
             y = torch.reshape(y, (N//2, 2)).permute(1,0)
 
-            scores = model(x)
-            preds = scores.round()
-            preds = preds.reshape(preds.size(0))
+            classScores, exifScores = model(x)
+
+            exifTarget = []
+            for pair in torch.split(y, split_size_or_sections=1):
+            	exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
+            	exifTarget.append(exifVec)
+            exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
+
+            exifPreds = exifScores.round()
+            exifPreds = exifPreds.reshape(exifPreds.size(0), -1)
+            num_correct_exif += (exifPreds == exifTarget).sum()
+            num_samples_exif += (exifPreds.size(0) * exifPreds.size(1))
+
+
+            classPreds = classScores.round()
+            classPreds = classPreds.reshape(exifPreds.size(0))
             target = y[0] == y[1]
             target = target.to(device=device, dtype=torch.float)
-            num_correct += (preds == target).sum()
-            num_samples += preds.size(0)
-        acc = float(num_correct) / num_samples
-        print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, 100 * acc))
+            num_correct += (classPreds == target).sum()
+            num_samples += classPreds.size(0)
+
+        exifAcc = float(num_correct_exif) / num_samples_exif
+        classAcc = float(num_correct) / num_samples
+        print('Got %d / %d exifs correct (%.2f)' % (num_correct_exif, num_samples_exif, 100 * exifAcc))
+        print('Got %d / %d classes correct (%.2f)' % (num_correct, num_samples, 100 * classAcc))
 
 
 def train(model, optimizer, loader_train, loader_val, epochs=1):
@@ -93,7 +111,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             y = y.to(device=device, dtype=torch.float)
             N, C, H, W = x.shape
 
-            if N % 2 != 0:
+            if (N // 2) % 2 != 0:
                 continue
 
             x = torch.reshape(x, (N//2, 2, C, H, W))
@@ -110,7 +128,6 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             classTarget = y[0] == y[1]
             classTarget = classTarget.to(device=device, dtype=torch.float)
             classLoss = lossFunc(classScores, classTarget)
-            #loss = F.binary_cross_entropy(scores, target)
 
             totalLoss = sum([exifLoss, classLoss])
 
@@ -131,8 +148,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             # computed by the backwards pass.
             optimizer.step()
 
-            if t > 0 and t % 50 == 0:
-                print('Iteration %d, loss = %.4f' % (t, loss.item()))
+            if t % 2 == 0:
                 check_accuracy(loader_val, model)
                 print()
 

@@ -25,13 +25,14 @@ def getAttributes():
         img_count += len(imgDir)
         j = imgDir[0]
         ext = os.path.splitext(j)[1]
-        if ext.lower() not in valid_images:
-            print("not valid")
-            continue
+        # if ext.lower() not in valid_images:
+        #     print("not valid")
+        #     continue
 
         fl = open(os.path.join(path,f,j), 'rb')
         tags = exifread.process_file(fl)
         exifs.append(tags)
+        print("--------------------- appended tags")
         for tag in tags.keys():
             if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
                 attribute = tag
@@ -46,7 +47,7 @@ def getAttributes():
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():
-        if val >= 5:
+        if val >= 1:
             attribute2index[key] = index
             num_atts += 1
             index += 1
@@ -54,6 +55,7 @@ def getAttributes():
 
     print("Image Count is " + str(img_count))
     print("Attribute Count is " + str(num_atts))
+    print(len(exifs))
     return img_count, num_atts
 
 def attr2ind(attribute):
