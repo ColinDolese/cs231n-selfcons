@@ -83,7 +83,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
     	print("----------- Starting  Epoch " + str(e) + " -----------")
-        for t, (x, y, i) in enumerate(loader_train):
+    	for t, (x, y, i) in enumerate(loader_train):
             print('Iteration %d' % (t))
             model.train()  # put model to training mode
             x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
