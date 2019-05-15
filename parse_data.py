@@ -54,7 +54,7 @@ def getAttributes():
 
                 attribute_dict[attribute] += 1
         
-        if img_count >= 2000:
+        if img_count >= 500:
             break
 
     index = 0
