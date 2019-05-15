@@ -3,7 +3,7 @@ import piexif
 import os, os.path
 import numpy as np
 
-exifs = []
+#exifs = []
 path = "./FlickrCentral"
 valid_images = [".jpg",".gif",".png",".tga"]
 
@@ -40,7 +40,7 @@ def getAttributes():
                     attribute_dict[attribute] = 0
 
                 attribute_dict[attribute] += 1
-        exifs.append(exif_dict)
+        #exifs.append(exif_dict)
         
 
     index = 0
@@ -51,20 +51,20 @@ def getAttributes():
 
     return img_count, len(attribute_dict.keys())
 
-def attr2ind(attribute):
-    return attribute2index[attribute]
+# def attr2ind(attribute):
+#     return attribute2index[attribute]
 
-def ind2attr(index):
-    return index2attribute[index]
+# def ind2attr(index):
+#     return index2attribute[index]
 
-def get_attribute_vec(imgIndex):
-    exif_dict = exifs[imgIndex]
-    vec = np.zeros(len(attribute2index.keys()))
-    for tag in exif_dict["Exif"]:
-        attribute = piexif.TAGS["Exif"][tag]["name"]
-        vec[attr2ind(attribute)] = 1
+# def get_attribute_vec(imgIndex):
+#     exif_dict = exifs[imgIndex]
+#     vec = np.zeros(len(attribute2index.keys()))
+#     for tag in exif_dict["Exif"]:
+#         attribute = piexif.TAGS["Exif"][tag]["name"]
+#         vec[attr2ind(attribute)] = 1
 
-    return vec
+#     return vec
 
-getAttributes()
+# getAttributes()
 
