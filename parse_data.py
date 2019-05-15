@@ -54,7 +54,7 @@ def getAttributes():
 
                 attribute_dict[attribute] += 1
         
-        if img_count >= 1000:
+        if img_count >= 200:
             break
 
     index = 0
@@ -83,6 +83,4 @@ def getAttributes():
 #         vec[attr2ind(attribute)] = 1
 
 #     return vec
-
-getAttributes()
 
