@@ -53,15 +53,14 @@ def getAttributes():
 
                 attribute_dict[attribute] += 1
         
-
+        if img_count >= 1000:
+            break
     # index = 0
     # for key, val in attribute_dict.items():
     #     index2attribute[index] = key
     #     attribute2index[key] = index
     #     index += 1
 
-    if img_count >= 1000:
-        break
 
     print("Image Count is " + str(img_count))
     print("Attribute Count is " + str(len(attribute_dict.keys())))
