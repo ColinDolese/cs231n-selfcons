@@ -129,9 +129,13 @@ def main():
     batch_size = int(sys.argv[1])
     epochs = int(sys.argv[2])
 
-    print("----------- Starting Attribute Search -----------")
-    numImages, numAttributes = parse_data.getAttributes()
-    print("----------- Finished Attribute Search -----------")
+    # print("----------- Starting Attribute Search -----------")
+    # numImages, numAttributes = parse_data.getAttributes()
+    # print("----------- Finished Attribute Search -----------")
+
+    numImages = 18043
+    numAttributes = 79
+
     trainEnd = numImages // 2
 
     valStart = (numImages // 2) + 1
