@@ -54,13 +54,11 @@ def getAttributes():
 
                 attribute_dict[attribute] += 1
         
-        if img_count >= 200:
-            break
 
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():
-        if val >= 5:
+        if val >= 50:
             num_atts += 1
         index += 1
 
