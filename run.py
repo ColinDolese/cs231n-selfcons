@@ -130,11 +130,11 @@ def main():
     epochs = int(sys.argv[2])
 
     # print("----------- Starting Attribute Search -----------")
-    numImages, numAttributes = parse_data.getAttributes()
+   	numImages, numAttributes = parse_data.getAttributes()
     # print("----------- Finished Attribute Search -----------")
 
-    # numImages = 18043
-    # numAttributes = 79
+    # numImages = 7477
+    # numAttributes = 37
 
     trainEnd = numImages // 2
 
