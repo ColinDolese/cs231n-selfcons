@@ -19,7 +19,8 @@ class SelfConsistency(nn.Module):
         self.classifier = PatchClassifier(exifSize)
 
     def forward(self, x):
-        x = self.siameseNet(x)
-        x = self.classifier(x)
-        return x
+        siameseOut = self.siameseNet(x)
+
+        x = self.classifier(siameseOut)
+        return x, siameseOut
 

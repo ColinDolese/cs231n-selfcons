@@ -3,9 +3,10 @@ import piexif
 import os, os.path
 import numpy as np
 import exifread
+import torch
 
 
-#exifs = []
+exifs = []
 path = "./FlickrCentral"
 valid_images = [".jpg",".gif",".png",".tga"]
 
@@ -27,25 +28,10 @@ def getAttributes():
         if ext.lower() not in valid_images:
             print("not valid")
             continue
-        # im = Image.open(os.path.join(path,f,j))
-        # if "exif" not in im.info:
-        #     continue
-        # exif_dict = piexif.load(im.info["exif"])
-        # #for ifd in ("0th", "Exif", "GPS", "1st"):
-        # for ifd in (["Exif"]):
-        #     for tag in exif_dict[ifd]:
-        #         #attribute = ifd + "_" + str(tag) + "_" + piexif.TAGS[ifd][tag]["name"] 
-        #         attribute = piexif.TAGS[ifd][tag]["name"] 
-        #         value = exif_dict[ifd][tag]
-        #         #print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
 
-        #         if attribute not in attribute_dict:
-        #             attribute_dict[attribute] = 0
-
-        #         attribute_dict[attribute] += 1
-        # #exifs.append(exif_dict)
         fl = open(os.path.join(path,f,j), 'rb')
         tags = exifread.process_file(fl)
+        exifs.append(tags)
         for tag in tags.keys():
             if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
                 attribute = tag
@@ -61,26 +47,31 @@ def getAttributes():
     num_atts = 0
     for key, val in attribute_dict.items():
         if val >= 5:
+            attribute2index[key] = index
             num_atts += 1
-        index += 1
+            index += 1
 
 
     print("Image Count is " + str(img_count))
     print("Attribute Count is " + str(num_atts))
     return img_count, num_atts
 
-# def attr2ind(attribute):
-#     return attribute2index[attribute]
+def attr2ind(attribute):
+    return attribute2index[attribute]
 
 # def ind2attr(index):
 #     return index2attribute[index]
 
-# def get_attribute_vec(imgIndex):
-#     exif_dict = exifs[imgIndex]
-#     vec = np.zeros(len(attribute2index.keys()))
-#     for tag in exif_dict["Exif"]:
-#         attribute = piexif.TAGS["Exif"][tag]["name"]
-#         vec[attr2ind(attribute)] = 1
+def exif_vec(im1, im2):
+    tags1 = exifs[int(im1)]
+    tags2 = exifs[int(im2)]
+    vec = np.zeros(len(attribute2index.keys()))
+    for tag in tags1:
+        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
+            if tag in tags2 and str(tags1[tag]) == str(tags2[tag]):
 
-#     return vec
+                vec[attribute2index[tag]] = 1
+            else:
+                vec[attribute2index[tag]] = 0
+    return torch.from_numpy(vec)
 

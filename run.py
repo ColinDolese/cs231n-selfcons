@@ -12,6 +12,8 @@ import parse_data
 import torch.nn.functional as F
 import random
 from model import SelfConsistency
+from layers import SiameseNet, PatchClassifier
+
 
 
 import numpy as np
@@ -80,6 +82,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
     
     Returns: Nothing, but prints model accuracies during training.
     """
+    lossFunc = nn.MultiLabelSoftMarginLoss()
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
     	print("----------- Starting  Epoch " + str(e) + " -----------")
@@ -94,16 +97,26 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
                 continue
 
             x = torch.reshape(x, (N//2, 2, C, H, W))
-            y = torch.reshape(y, (N//2, 2)).permute(1,0)        
-            scores = model(x)
-            target = y[0] == y[1]
-            target = target.to(device=device, dtype=torch.float)
-            scores = torch.reshape(scores, target.shape)
-            print(scores)
-            print(target)
-            loss = F.binary_cross_entropy(scores, target)
+            y = torch.reshape(y, (N//2, 2)).permute(1,0)  
+            classScores, exifScores = model(x)
 
-            print("Loss: " + str(loss))
+            exifTarget = []
+            for pair in torch.split(y, split_size_or_sections=1):
+            	exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
+            	exifTarget.append(exifVec)
+
+            exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
+            exifLoss = lossFunc(exifScores, exifTarget)
+            classTarget = y[0] == y[1]
+            classTarget = classTarget.to(device=device, dtype=torch.float)
+            classLoss = lossFunc(classScores, classTarget)
+            #loss = F.binary_cross_entropy(scores, target)
+
+            totalLoss = sum([exifLoss, classLoss])
+
+            print("Exif Loss: " + str(exifLoss))
+            print("Class Loss: " + str(classLoss))
+            print("Total Loss: " + str(totalLoss))
 
             # Zero out all of the gradients for the variables which the optimizer
             # will update.
@@ -111,7 +124,8 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
 
             # This is the backwards pass: compute the gradient of the loss with
             # respect to each  parameter of the model.
-            loss.backward()
+            #total_loss = sum([exifLoss, classLoss])
+            totalLoss.backward()
 
             # Actually update the parameters of the model using the gradients
             # computed by the backwards pass.
