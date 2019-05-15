@@ -67,6 +67,8 @@ def exif_vec(im1, im2):
     tags2 = exifs[int(im2)]
     vec = np.zeros(len(attribute2index.keys()))
     for tag in tags1:
+        if tag not in attribute2index:
+            continue
         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
             if tag in tags2 and str(tags1[tag]) == str(tags2[tag]):
 
