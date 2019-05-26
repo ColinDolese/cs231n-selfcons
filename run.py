@@ -34,9 +34,9 @@ class ExifTrainDataset(torch.utils.data.Dataset):
         #y = torch.from_numpy(target).float().to(self.device)
         target = self.data[index][1]
         x = self.data[index][0]
-        xInd = random.randint(0, 2048-128)
-        yInd = random.randint(0, 2048-128)
-        x = x[:, xInd:xInd+128, yInd:yInd+128]
+        #xInd = random.randint(0, 2048-128)
+        #yInd = random.randint(0, 2048-128)
+        #x = x[:, xInd:xInd+128, yInd:yInd+128]
         #x = x.narrow(1, xInd, 128)
         #x = x.narrow(2, yInd, 128)
         return (x, target, index)
@@ -70,37 +70,67 @@ def check_accuracy_train(loader, model):
 
             N, C, H, W = x.shape
 
-            halfN = N // 2
+            X = torch.zeros(N, 2, C, 128, 128)
+            Y = torch.zeros(N, 2)
 
-            if N % 2 != 0:
-                continue
+            for b in range(N):
+                xInd1 = random.randint(0, 2048-128)
+                yInd1 = random.randint(0, 2048-128)
 
-            copyInd = random.randint(0,(halfN)-1)
+                xInd2 = random.randint(0, 2048-128)
+                yInd2 = random.randint(0, 2048-128)
 
-            xCopy = x[copyInd:copyInd+halfN, :, :, :]
-            yCopy = y[copyInd:copyInd+halfN]
+                patch1 = x[b, :, xInd1:xInd1+128, yInd1:yInd1+128]
+                X[b, 0, :, :, :] = patch1
+                Y[b, 0] = y[b]
+                copy = bool(random.randint(0, 1))
 
-            x = torch.reshape(x, (N//2, 2, C, H, W))
-            y = torch.reshape(y, (N//2, 2))
 
-            xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
-            xFinal[:N//2, :, :, :] = x
+                if copy:
+                    patch2 = x[b, :, xInd2:xInd2+128, yInd2:yInd2+128]
+                    Y[b, 1] = y[b]
 
-            for h in range(halfN):
-                xFinal[N//2+h, 0, :, :, :] = xCopy[h]
-                xFinal[N//2+h, 1, :, :, :] = xCopy[h]
+                else:
+                    patch2Ind = random.randint(0, N-1)
+                    patch2 = x[patch2Ind, :, xInd2:xInd2+128, yInd2:yInd2+128]
+                    Y[b, 1] = y[patch2Ind]
 
-            yFinal = torch.zeros((N//2 + halfN, 2))
-            yFinal[:N//2, :] = y
-            for h in range(halfN):
-                yFinal[N//2+h, 0] = yCopy[h]
-                yFinal[N//2+h, 1] = yCopy[h]
+                X[b, 1, :, :, :] = patch2
 
-            x = xFinal
-            y = yFinal
+            x = X.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            y = Y.to(device=device, dtype=torch.float)
 
-            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            y = y.to(device=device, dtype=torch.float)
+            # halfN = N // 2
+
+            # if N % 2 != 0:
+            #     continue
+
+            # copyInd = random.randint(0,(halfN)-1)
+
+            # xCopy = x[copyInd:copyInd+halfN, :, :, :]
+            # yCopy = y[copyInd:copyInd+halfN]
+
+            # x = torch.reshape(x, (N//2, 2, C, H, W))
+            # y = torch.reshape(y, (N//2, 2))
+
+            # xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
+            # xFinal[:N//2, :, :, :] = x
+
+            # for h in range(halfN):
+            #     xFinal[N//2+h, 0, :, :, :] = xCopy[h]
+            #     xFinal[N//2+h, 1, :, :, :] = xCopy[h]
+
+            # yFinal = torch.zeros((N//2 + halfN, 2))
+            # yFinal[:N//2, :] = y
+            # for h in range(halfN):
+            #     yFinal[N//2+h, 0] = yCopy[h]
+            #     yFinal[N//2+h, 1] = yCopy[h]
+
+            # x = xFinal
+            # y = yFinal
+
+            # x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            # y = y.to(device=device, dtype=torch.float)
 
             classScores, exifScores = model(x)
 
@@ -163,37 +193,67 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             model.train()  # put model to training mode
             N, C, H, W = x.shape
 
-            halfN = N // 2
+            X = torch.zeros(N, 2, C, 128, 128)
+            Y = torch.zeros(N, 2)
 
-            if N % 2 != 0:
-                continue
+            for b in range(N):
+                xInd1 = random.randint(0, 2048-128)
+                yInd1 = random.randint(0, 2048-128)
 
-            copyInd = random.randint(0,(halfN)-1)
+                xInd2 = random.randint(0, 2048-128)
+                yInd2 = random.randint(0, 2048-128)
 
-            xCopy = x[copyInd:copyInd+halfN, :, :, :]
-            yCopy = y[copyInd:copyInd+halfN]
+                patch1 = x[b, :, xInd1:xInd1+128, yInd1:yInd1+128]
+                X[b, 0, :, :, :] = patch1
+                Y[b, 0] = y[b]
+                copy = bool(random.randint(0, 1))
 
-            x = torch.reshape(x, (N//2, 2, C, H, W))
-            y = torch.reshape(y, (N//2, 2))
 
-            xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
-            xFinal[:N//2, :, :, :] = x
+                if copy:
+                    patch2 = x[b, :, xInd2:xInd2+128, yInd2:yInd2+128]
+                    Y[b, 1] = y[b]
 
-            for h in range(halfN):
-                xFinal[N//2+h, 0, :, :, :] = xCopy[h]
-                xFinal[N//2+h, 1, :, :, :] = xCopy[h]
+                else:
+                    patch2Ind = random.randint(0, N-1)
+                    patch2 = x[patch2Ind, :, xInd2:xInd2+128, yInd2:yInd2+128]
+                    Y[b, 1] = y[patch2Ind]
 
-            yFinal = torch.zeros((N//2 + halfN, 2))
-            yFinal[:N//2, :] = y
-            for h in range(halfN):
-                yFinal[N//2+h, 0] = yCopy[h]
-                yFinal[N//2+h, 1] = yCopy[h]
+                X[b, 1, :, :, :] = patch2
 
-            x = xFinal
-            y = yFinal
+            x = X.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            y = Y.to(device=device, dtype=torch.float)
 
-            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            y = y.to(device=device, dtype=torch.float)
+            # halfN = N // 2
+
+            # if N % 2 != 0:
+            #     continue
+
+            # copyInd = random.randint(0,(halfN)-1)
+
+            # xCopy = x[copyInd:copyInd+halfN, :, :, :]
+            # yCopy = y[copyInd:copyInd+halfN]
+
+            # x = torch.reshape(x, (N//2, 2, C, H, W))
+            # y = torch.reshape(y, (N//2, 2))
+
+            # xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
+            # xFinal[:N//2, :, :, :] = x
+
+            # for h in range(halfN):
+            #     xFinal[N//2+h, 0, :, :, :] = xCopy[h]
+            #     xFinal[N//2+h, 1, :, :, :] = xCopy[h]
+
+            # yFinal = torch.zeros((N//2 + halfN, 2))
+            # yFinal[:N//2, :] = y
+            # for h in range(halfN):
+            #     yFinal[N//2+h, 0] = yCopy[h]
+            #     yFinal[N//2+h, 1] = yCopy[h]
+
+            # x = xFinal
+            # y = yFinal
+
+            # x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            # y = y.to(device=device, dtype=torch.float)
 
             classScores, exifScores = model(x)
             exifTarget = []
@@ -361,7 +421,7 @@ def main():
 
 
         loader_val = DataLoader(img_data_train, batch_size=batch_size, 
-                                  sampler=sampler.SubsetRandomSampler(range(valStart, numImages)))
+                                  sampler=sampler.SubsetRandomSampler(range(valStart, numImages-1)))
 
 
 
