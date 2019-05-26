@@ -151,6 +151,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             optimizer.zero_grad()
             totalLoss.backward()
             optimizer.step()
+
             if t % 10 == 0:
                 check_accuracy_train(loader_val, model)
                 print()
@@ -214,6 +215,7 @@ def test_columbia(model, loader_test, numPatches):
                         else :
                             scores[k,l] = 1.0
 
+                print(scores)
                 if torch.sum(scores) < (numPatches*numPatches // 2):
                     tamper = True
                     break
