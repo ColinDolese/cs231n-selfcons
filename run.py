@@ -121,56 +121,46 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
     lossFunc = nn.MultiLabelSoftMarginLoss()
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
-    	print("----------- Starting  Epoch " + str(e) + " -----------")
-    	for t, (x, y, i) in enumerate(loader_train):
+        print("----------- Starting  Epoch " + str(e) + " -----------")
+        for t, (x, y, i) in enumerate(loader_train):
             print('Iteration %d' % (t))
             model.train()  # put model to training mode
             x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
             y = y.to(device=device, dtype=torch.float)
             N, C, H, W = x.shape
-
             if N % 2 != 0:
                 continue
-
             x = torch.reshape(x, (N//2, 2, C, H, W))
             y = torch.reshape(y, (N//2, 2))
             classScores, exifScores = model(x)
-
             exifTarget = []
             for pair in torch.split(y, split_size_or_sections=1):
-            	exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
-            	exifTarget.append(exifVec)
-
+                exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
+                exifTarget.append(exifVec)
             y = y.permute(1,0)
             exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
             exifLoss = lossFunc(exifScores, exifTarget)
             classTarget = y[0] == y[1]
             classTarget = classTarget.to(device=device, dtype=torch.float)
             classLoss = lossFunc(classScores, classTarget)
-
             totalLoss = sum([exifLoss, classLoss])
-
+            print(totalLoss)
             print("Exif Loss: " + str(exifLoss))
             print("Class Loss: " + str(classLoss))
             print("Total Loss: " + str(totalLoss))
-
-            # Zero out all of the gradients for the variables which the optimizer
-            # will update.
             optimizer.zero_grad()
-
-            # This is the backwards pass: compute the gradient of the loss with
-            # respect to each  parameter of the model.
-            #total_loss = sum([exifLoss, classLoss])
             totalLoss.backward()
-
-            # Actually update the parameters of the model using the gradients
-            # computed by the backwards pass.
             optimizer.step()
-
             if t % 10 == 0:
                 check_accuracy_train(loader_val, model)
                 print()
 
+        print("Saving model at epoch: " + str(e))
+        torch.save({
+            'epoch': e,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict()
+            }, 'model.pt')
 
 def test_columbia(model, loader_test, numPatches):
 
@@ -228,10 +218,10 @@ def test_columbia(model, loader_test, numPatches):
                     tamper = True
                     break
 
-        truth = (y >= 11)
+        truth = (y == 1)
 
         print("Image " + str(index + 1) + " classified as tamper = " + str(tamper))
-        print("Image " + str(index + 1) + " ground truth is tamper = " + str(truth))
+        print("Image " + str(index + 1) + " is actually tamper = " + str(truth))
 
         if tamper and truth:
             tp += 1
@@ -239,14 +229,11 @@ def test_columbia(model, loader_test, numPatches):
         if not tamper and not truth:
             tn += 1
 
-        if tamper and not truth:
-            fp += 1
-
         if not tamper and truth:
             fn += 1
 
-        if index == 3:
-            break 
+        if tamper and not truth:
+            fp += 1
 
     print("tp: " + str(tp))
     print("tn: " + str(tn))
@@ -276,49 +263,67 @@ def main():
     batch_size = int(sys.argv[2])
     epochs = int(sys.argv[3])
     numPatches = int(sys.argv[4])
+    loadTrainModel = bool(int(sys.argv[5]))
+    testBestModel = bool(int(sys.argv[6]))
 
     numImages, numAttributes = parse_data.getAttributes(minOccur)
 
-    model = SelfConsistency(numAttributes)
-
-
-    # numImages = 7477
-    # numAttributes = 37
-
-    trainEnd = numImages // 2
-
-    valStart = (numImages // 2) + 1
-    valEnd = valStart + (numImages // 4)
-
-    testStart = valEnd + 1
-    testEnd = numImages - 1
-
-    img_data_train = ExifTrainDataset()
-
-    print("----------- Loading Data -----------")
-    loader_train = DataLoader(img_data_train, batch_size=batch_size, 
-                              sampler=sampler.SubsetRandomSampler(range(trainEnd)))
-
-
-    loader_val = DataLoader(img_data_train, batch_size=batch_size, 
-                              sampler=sampler.SubsetRandomSampler(range(valStart, valEnd)))
-
-    loader_test = DataLoader(img_data_train, batch_size=batch_size, 
-                            sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
-
-
-    print("----------- Finished Loading Data -----------")
-    model = SelfConsistency(numAttributes)
     lr = 1e-4
+    model = SelfConsistency(numAttributes)
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    train(model, optimizer, loader_train, loader_val, epochs=epochs)
-    print("----------- Testing -----------")
-    check_accuracy_train(loader_test, model)
+
+    if !testBestModel:
+
+        if loadTrainModel:
+            checkpoint = torch.load('model_train.pt')
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            epoch = checkpoint['epoch']
+            print("Loaded model trained with " + str(epoch) + " epochs")
 
 
-    img_columbia = Columbia()
+        # numImages = 7477
+        # numAttributes = 37
 
-    test_columbia(model, img_columbia, numPatches)
+        trainEnd = numImages // 2
+
+        valStart = (numImages // 2) + 1
+        valEnd = valStart + (numImages // 4)
+
+        testStart = valEnd + 1
+        testEnd = numImages - 1
+
+        img_data_train = ExifTrainDataset()
+
+        print("----------- Loading Data -----------")
+        loader_train = DataLoader(img_data_train, batch_size=batch_size, 
+                                  sampler=sampler.SubsetRandomSampler(range(trainEnd)))
+
+
+        loader_val = DataLoader(img_data_train, batch_size=batch_size, 
+                                  sampler=sampler.SubsetRandomSampler(range(valStart, valEnd)))
+
+        loader_test = DataLoader(img_data_train, batch_size=batch_size, 
+                                sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
+
+
+        print("----------- Finished Loading Data -----------")
+
+        train(model, optimizer, loader_train, loader_val, epochs=epochs)
+
+        print("----------- Testing -----------")
+
+        print("Saving best model")
+        torch.save(model, "model_best.pt")
+
+
+        check_accuracy_train(loader_test, model)
+
+    else:
+
+        model = torch.load("model_best.pt")
+        img_columbia = Columbia()
+        test_columbia(model, img_columbia, numPatches)
 
 if __name__ == '__main__':
     main()
