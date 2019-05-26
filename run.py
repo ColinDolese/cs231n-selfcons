@@ -65,31 +65,36 @@ def check_accuracy_train(loader, model):
     num_samples = 0
     model.eval()  # set model to evaluation mode
     with torch.no_grad():
+        print("Checking Accuracy")
         for t, (x, y, i) in enumerate(loader):
-            print("Checking Accuracy")
 
             N, C, H, W = x.shape
+
+            halfN = N // 2
 
             if N % 2 != 0:
                 continue
 
-            copyInd = random.randint(0,N-1)
+            copyInd = random.randint(0,(halfN)-1)
 
-            xCopy = x[copyInd, :, :, :]
-            yCopy = y[copyInd]
+            xCopy = x[copyInd:copyInd+halfN, :, :, :]
+            yCopy = y[copyInd:copyInd+halfN]
 
             x = torch.reshape(x, (N//2, 2, C, H, W))
             y = torch.reshape(y, (N//2, 2))
 
-            xFinal = torch.zeros((N//2 + 1, 2, C, H, W))
+            xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
             xFinal[:N//2, :, :, :] = x
-            xFinal[N//2, 0, :, :, :] = xCopy
-            xFinal[N//2, 1, :, :, :] = xCopy
 
-            yFinal = torch.zeros((N//2 + 1, 2))
+            for h in range(halfN):
+                xFinal[N//2+h, 0, :, :, :] = xCopy[h]
+                xFinal[N//2+h, 1, :, :, :] = xCopy[h]
+
+            yFinal = torch.zeros((N//2 + halfN, 2))
             yFinal[:N//2, :] = y
-            yFinal[N//2, 0] = yCopy
-            yFinal[N//2, 1] = yCopy
+            for h in range(halfN):
+                yFinal[N//2+h, 0] = yCopy[h]
+                yFinal[N//2+h, 1] = yCopy[h]
 
             x = xFinal
             y = yFinal
@@ -158,26 +163,31 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             model.train()  # put model to training mode
             N, C, H, W = x.shape
 
+            halfN = N // 2
+
             if N % 2 != 0:
                 continue
 
-            copyInd = random.randint(0,N-1)
+            copyInd = random.randint(0,(halfN)-1)
 
-            xCopy = x[copyInd, :, :, :]
-            yCopy = y[copyInd]
+            xCopy = x[copyInd:copyInd+halfN, :, :, :]
+            yCopy = y[copyInd:copyInd+halfN]
 
             x = torch.reshape(x, (N//2, 2, C, H, W))
             y = torch.reshape(y, (N//2, 2))
 
-            xFinal = torch.zeros((N//2 + 1, 2, C, H, W))
+            xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
             xFinal[:N//2, :, :, :] = x
-            xFinal[N//2, 0, :, :, :] = xCopy
-            xFinal[N//2, 1, :, :, :] = xCopy
 
-            yFinal = torch.zeros((N//2 + 1, 2))
+            for h in range(halfN):
+                xFinal[N//2+h, 0, :, :, :] = xCopy[h]
+                xFinal[N//2+h, 1, :, :, :] = xCopy[h]
+
+            yFinal = torch.zeros((N//2 + halfN, 2))
             yFinal[:N//2, :] = y
-            yFinal[N//2, 0] = yCopy
-            yFinal[N//2, 1] = yCopy
+            for h in range(halfN):
+                yFinal[N//2+h, 0] = yCopy[h]
+                yFinal[N//2+h, 1] = yCopy[h]
 
             x = xFinal
             y = yFinal
@@ -208,7 +218,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             optimizer.step()
 
             if t % 10 == 0:
-                check_accuracy_train(loader_val, model)
+                #check_accuracy_train(loader_val, model)
                 print()
 
         print("Saving model at epoch: " + str(e))
