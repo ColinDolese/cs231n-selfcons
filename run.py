@@ -277,7 +277,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             totalLoss.backward()
             optimizer.step()
 
-            if t % 10 == 0:
+            if t % 100 == 0 and t > 0:
                 check_accuracy_train(loader_val, model)
                 print()
 
