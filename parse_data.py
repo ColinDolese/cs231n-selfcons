@@ -13,7 +13,7 @@ valid_images = [".jpg",".gif",".png",".tga"]
 attribute2index = {}
 index2attribute = {}
 
-def getAttributes():
+def getAttributes(minOccur):
     attribute_dict = {}
 
     img_count = 0
@@ -46,7 +46,7 @@ def getAttributes():
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():
-        if val >= 10:
+        if val >= minOccur:
             attribute2index[key] = index
             num_atts += 1
             index += 1

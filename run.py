@@ -1,4 +1,5 @@
 import sys
+import math
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -35,15 +36,29 @@ class ExifTrainDataset(torch.utils.data.Dataset):
         x = self.data[index][0]
         xInd = random.randint(0, 2048-128)
         yInd = random.randint(0, 2048-128)
-        x = x.narrow(1, xInd, 128)
-        x = x.narrow(2, yInd, 128)
+        x = x[:, xInd:xInd+128, yInd:yInd+128]
+        #x = x.narrow(1, xInd, 128)
+        #x = x.narrow(2, yInd, 128)
         return (x, target, index)
 
+class Columbia(torch.utils.data.Dataset): 
+    def __init__(self): 
+        transform = T.Compose([
+                T.ToTensor(),
+                T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+            ])
+        self.data = dset.ImageFolder("./Columbia", transform=transform)
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    def __getitem__(self, index): 
+        target = self.data[index][1]
+        x = self.data[index][0]
+        return (x, target, index)
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 dtype = torch.float
-def check_accuracy(loader, model):
+def check_accuracy_train(loader, model):
     num_correct_exif = 0
     num_samples_exif = 0
     num_correct = 0
@@ -71,11 +86,10 @@ def check_accuracy(loader, model):
             exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
 
             y = y.permute(1,0)
-            
+
             exifPreds = exifScores.round()
             exifPreds = exifPreds.reshape(exifPreds.size(0), -1)
-            print(exifTarget.shape)
-            print(exifPreds.shape)
+
             num_correct_exif += (exifPreds == exifTarget).sum()
             num_samples_exif += (exifPreds.size(0) * exifPreds.size(1))
 
@@ -154,51 +168,168 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             optimizer.step()
 
             if t % 10 == 0:
-                check_accuracy(loader_val, model)
+                check_accuracy_train(loader_val, model)
                 print()
+
+
+def test_columbia(model, loader_test):
+
+    numPatches = 2
+    tp = 0
+    tn = 0
+    fn = 0
+    fp = 0
+
+
+    for x, y, index in loader_test:
+
+        print("Testing image " + str(index + 1))
+
+        x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+        _, xDim, yDim = x.shape
+
+        numPatches = 4
+        xSize = 128 - numPatches
+        ySize = 128 - numPatches
+        tamper = False
+
+        for i in range(numPatches):
+
+            if tamper:
+                break
+
+            for j in range(numPatches):
+                scores = torch.zeros((numPatches,numPatches))
+                scores[i,j] = 1.0           
+                curX = torch.zeros((3,128,128))
+                centerX = numPatches // 2
+                centerY = numPatches // 2
+                curX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,i:i+xSize-1, j:j+ySize-1]
+
+                for k in range(numPatches):
+
+                    for l in range(numPatches):
+
+                        if k==i and l == j:
+                            continue
+
+                        testX = torch.zeros((3,128,128))
+                        testX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,k:k+xSize-1, l:l+ySize-1]
+
+                        pair = torch.stack([curX, testX]).to(device=device, dtype=torch.float)
+                        pair = torch.unsqueeze(pair, 0)
+
+                        classScores, exifScores = model(pair)
+
+                        if classScores[0,0,0] < 0.5:
+                            scores[k,l] = 0.0
+                        else :
+                            scores[k,l] = 1.0
+
+                if torch.sum(scores) < (numPatches*numPatches // 2):
+                    tamper = True
+                    break
+
+        truth = (y >= 11)
+
+        print("Image " + str(index + 1) + " classified as tamper = " + str(tamper))
+        print("Image " + str(index + 1) + " ground truth is tamper = " + str(truth))
+
+        if tamper and truth:
+            tp += 1
+
+        if not tamper and not truth:
+            tn += 1
+
+        if tamper and not truth:
+            fp += 1
+
+        if not tamper and truth:
+            fn += 1
+
+        if index == 3:
+            break 
+
+    print("tp: " + str(tp))
+    print("tn: " + str(tn))
+    print("fp: " + str(fp))
+    print("fn: " + str(fn))  
+
+    f1 = 0.0
+    f1_denom = (2.0*tp + fn + fp)
+
+    if f1_denom > 0.0:
+        f1 = 2.0*tp / f1_denom     
+
+    mcc = 0.0
+    mcc_denom = math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
+    if mcc_denom > 0.0:
+        mcc = (tp*tn - fp*fn) / mcc_denom
+
+    print("F1 score: " + str(f1))
+    print("MCC score: " + str(mcc))
 
 
 
 def main():
 
-    batch_size = int(sys.argv[1])
-    epochs = int(sys.argv[2])
+    run_train = int(sys.argv[1])
+    if run_train == 0:
+        run_train = False
+    else: 
+        run_train = True
+    print(run_train)
+    minOccur = int(sys.argv[2])
+    batch_size = int(sys.argv[3])
+    epochs = int(sys.argv[4])
 
-    # print("----------- Starting Attribute Search -----------")
-    numImages, numAttributes = parse_data.getAttributes()
-    # print("----------- Finished Attribute Search -----------")
+    numImages, numAttributes = parse_data.getAttributes(minOccur)
 
-    # numImages = 7477
-    # numAttributes = 37
-
-    trainEnd = numImages // 2
-
-    valStart = (numImages // 2) + 1
-    valEnd = valStart + (numImages // 4)
-
-    testStart = valEnd + 1
-    testEnd = numImages - 1
-
-    img_data = ExifTrainDataset()
-
-    print("----------- Loading Data -----------")
-    loader_train = DataLoader(img_data, batch_size=batch_size, 
-                              sampler=sampler.SubsetRandomSampler(range(trainEnd)))
-
-
-    loader_val = DataLoader(img_data, batch_size=batch_size, 
-                              sampler=sampler.SubsetRandomSampler(range(valStart, valEnd)))
-
-    loader_test = DataLoader(img_data, batch_size=batch_size, 
-                            sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
-
-    print("----------- Finished Loading Data -----------")
     model = SelfConsistency(numAttributes)
-    lr = 1e-4
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    train(model, optimizer, loader_train, loader_val, epochs=epochs)
-    print("----------- Testing -----------")
-    check_accuracy(loader_test, model)
+
+    if run_train:
+
+        # numImages = 7477
+        # numAttributes = 37
+
+        trainEnd = numImages // 2
+
+        valStart = (numImages // 2) + 1
+        valEnd = valStart + (numImages // 4)
+
+        testStart = valEnd + 1
+        testEnd = numImages - 1
+
+        img_data_train = ExifTrainDataset()
+
+        print("----------- Loading Data -----------")
+        loader_train = DataLoader(img_data_train, batch_size=batch_size, 
+                                  sampler=sampler.SubsetRandomSampler(range(trainEnd)))
+
+
+        loader_val = DataLoader(img_data_train, batch_size=batch_size, 
+                                  sampler=sampler.SubsetRandomSampler(range(valStart, valEnd)))
+
+        loader_test = DataLoader(img_data_train, batch_size=batch_size, 
+                                sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
+
+
+        print("----------- Finished Loading Data -----------")
+        model = SelfConsistency(numAttributes)
+        lr = 1e-4
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+        train(model, optimizer, loader_train, loader_val, epochs=epochs)
+        print("----------- Testing -----------")
+        check_accuracy_train(loader_test, model)
+
+    else:
+
+        img_columbia = Columbia()
+
+        #loader_test = sampler.SequentialSampler(img_columbia)
+        #loader_test = DataLoader(img_columbia, batch_size=batch_size, sampler=sampler.SequentialSampler(img_columbia))
+
+        test_columbia(model, img_columbia)
 
 if __name__ == '__main__':
     main()
