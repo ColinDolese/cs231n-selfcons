@@ -40,9 +40,6 @@ def getAttributes(minOccur):
 
                 attribute_dict[attribute] += 1
         
-        if img_count >= 500:
-            break
-
     index = 0
     num_atts = 0
     for key, val in attribute_dict.items():

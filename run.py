@@ -209,13 +209,11 @@ def test_columbia(model, loader_test, numPatches):
                         pair = torch.unsqueeze(pair, 0)
 
                         classScores, exifScores = model(pair)
-                        print(classScores)
                         if classScores[0,0,0] < 0.5:
                             scores[k,l] = 0.0
                         else :
                             scores[k,l] = 1.0
 
-                print(scores)
                 if torch.sum(scores) < (numPatches*numPatches // 2):
                     tamper = True
                     break
