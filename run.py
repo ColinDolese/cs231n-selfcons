@@ -218,7 +218,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             optimizer.step()
 
             if t % 10 == 0:
-                #check_accuracy_train(loader_val, model)
+                check_accuracy_train(loader_val, model)
                 print()
 
         print("Saving model at epoch: " + str(e))
@@ -350,26 +350,19 @@ def main():
         # numImages = 7477
         # numAttributes = 37
 
-        trainEnd = numImages // 2
+        valStart = max((numImages // 2) + 1, numImages - 100)
 
-        valStart = (numImages // 2) + 1
-        valEnd = valStart + (numImages // 4)
-
-        testStart = valEnd + 1
-        testEnd = numImages - 1
 
         img_data_train = ExifTrainDataset()
 
         print("----------- Loading Data -----------")
         loader_train = DataLoader(img_data_train, batch_size=batch_size, 
-                                  sampler=sampler.SubsetRandomSampler(range(trainEnd)))
+                                  sampler=sampler.SubsetRandomSampler(range(valStart-1)))
 
 
         loader_val = DataLoader(img_data_train, batch_size=batch_size, 
-                                  sampler=sampler.SubsetRandomSampler(range(valStart, valEnd)))
+                                  sampler=sampler.SubsetRandomSampler(range(valStart, numImages)))
 
-        loader_test = DataLoader(img_data_train, batch_size=batch_size, 
-                                sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
 
 
         print("----------- Finished Loading Data -----------")
@@ -381,8 +374,6 @@ def main():
         print("Saving best model")
         torch.save(model, "model_best.pt")
 
-
-        check_accuracy_train(loader_test, model)
 
     else:
 
