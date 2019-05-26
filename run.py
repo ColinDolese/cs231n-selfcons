@@ -66,6 +66,7 @@ def check_accuracy_train(loader, model):
     model.eval()  # set model to evaluation mode
     with torch.no_grad():
         for t, (x, y, i) in enumerate(loader):
+            print("Checking Accuracy")
             x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
             y = y.to(device=device, dtype=torch.float)
 
@@ -74,8 +75,26 @@ def check_accuracy_train(loader, model):
             if N % 2 != 0:
                 continue
 
+            copyInd = random.randint(0,N-1)
+
+            xCopy = x[copyInd, :, :, :]
+            yCopy = y[copyInd]
+
             x = torch.reshape(x, (N//2, 2, C, H, W))
             y = torch.reshape(y, (N//2, 2))
+
+            xFinal = torch.zeros((N//2 + 1, 2, C, H, W))
+            xFinal[:N//2, :, :, :] = x
+            xFinal[N//2, 0, :, :, :] = xCopy
+            xFinal[N//2, 1, :, :, :] = xCopy
+
+            yFinal = torch.zeros((N//2 + 1, 2))
+            yFinal[:N//2, :] = y
+            yFinal[N//2, 0] = yCopy
+            yFinal[N//2, 1] = yCopy
+
+            x = xFinal
+            y = yFinal
 
             classScores, exifScores = model(x)
 
@@ -93,6 +112,9 @@ def check_accuracy_train(loader, model):
             num_correct_exif += (exifPreds == exifTarget).sum()
             num_samples_exif += (exifPreds.size(0) * exifPreds.size(1))
 
+            if num_samples_exif == 0.0:
+                print(exifPreds.size(0))
+                print(exifPreds.size(1))
 
             classPreds = classScores.round()
             classPreds = classPreds.reshape(exifPreds.size(0))
@@ -101,8 +123,16 @@ def check_accuracy_train(loader, model):
             num_correct += (classPreds == target).sum()
             num_samples += classPreds.size(0)
 
-        exifAcc = float(num_correct_exif) / num_samples_exif
-        classAcc = float(num_correct) / num_samples
+        exifAcc = 0.0
+        classAcc = 0.0
+
+        if num_samples_exif > 0.0:
+            exifAcc = float(num_correct_exif) / num_samples_exif
+
+        if num_samples > 0.0:
+             classAcc = float(num_correct) / num_samples
+
+
         print('Got %d / %d exifs correct (%.2f)' % (num_correct_exif, num_samples_exif, 100 * exifAcc))
         print('Got %d / %d classes correct (%.2f)' % (num_correct, num_samples, 100 * classAcc))
 
@@ -128,23 +158,46 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
             y = y.to(device=device, dtype=torch.float)
             N, C, H, W = x.shape
+
             if N % 2 != 0:
                 continue
+
+            copyInd = random.randint(0,N-1)
+
+            xCopy = x[copyInd, :, :, :]
+            yCopy = y[copyInd]
+
             x = torch.reshape(x, (N//2, 2, C, H, W))
             y = torch.reshape(y, (N//2, 2))
+
+            xFinal = torch.zeros((N//2 + 1, 2, C, H, W))
+            xFinal[:N//2, :, :, :] = x
+            xFinal[N//2, 0, :, :, :] = xCopy
+            xFinal[N//2, 1, :, :, :] = xCopy
+
+            yFinal = torch.zeros((N//2 + 1, 2))
+            yFinal[:N//2, :] = y
+            yFinal[N//2, 0] = yCopy
+            yFinal[N//2, 1] = yCopy
+
+            x = xFinal
+            y = yFinal
+
             classScores, exifScores = model(x)
             exifTarget = []
             for pair in torch.split(y, split_size_or_sections=1):
                 exifVec = parse_data.exif_vec(pair[0][0], pair[0][1])
                 exifTarget.append(exifVec)
+
             y = y.permute(1,0)
             exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
             exifLoss = lossFunc(exifScores, exifTarget)
             classTarget = y[0] == y[1]
+            print(classTarget)
+
             classTarget = classTarget.to(device=device, dtype=torch.float)
             classLoss = lossFunc(classScores, classTarget)
             totalLoss = sum([exifLoss, classLoss])
-            print(totalLoss)
             print("Exif Loss: " + str(exifLoss))
             print("Class Loss: " + str(classLoss))
             print("Total Loss: " + str(totalLoss))
