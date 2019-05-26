@@ -67,8 +67,6 @@ def check_accuracy_train(loader, model):
     with torch.no_grad():
         for t, (x, y, i) in enumerate(loader):
             print("Checking Accuracy")
-            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            y = y.to(device=device, dtype=torch.float)
 
             N, C, H, W = x.shape
 
@@ -95,6 +93,9 @@ def check_accuracy_train(loader, model):
 
             x = xFinal
             y = yFinal
+
+            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            y = y.to(device=device, dtype=torch.float)
 
             classScores, exifScores = model(x)
 
@@ -155,8 +156,6 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
         for t, (x, y, i) in enumerate(loader_train):
             print('Iteration %d' % (t))
             model.train()  # put model to training mode
-            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            y = y.to(device=device, dtype=torch.float)
             N, C, H, W = x.shape
 
             if N % 2 != 0:
@@ -182,6 +181,9 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
 
             x = xFinal
             y = yFinal
+
+            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            y = y.to(device=device, dtype=torch.float)
 
             classScores, exifScores = model(x)
             exifTarget = []
