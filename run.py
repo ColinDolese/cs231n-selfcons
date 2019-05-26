@@ -172,15 +172,14 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
                 print()
 
 
-def test_columbia(model, loader_test):
+def test_columbia(model, loader_test, numPatches):
 
-    numPatches = 2
     tp = 0
     tn = 0
     fn = 0
     fp = 0
 
-
+    model.eval()  # set model to evaluation mode
     for x, y, index in loader_test:
 
         print("Testing image " + str(index + 1))
@@ -188,7 +187,6 @@ def test_columbia(model, loader_test):
         x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
         _, xDim, yDim = x.shape
 
-        numPatches = 4
         xSize = 128 - numPatches
         ySize = 128 - numPatches
         tamper = False
@@ -273,63 +271,54 @@ def test_columbia(model, loader_test):
 
 def main():
 
-    run_train = int(sys.argv[1])
-    if run_train == 0:
-        run_train = False
-    else: 
-        run_train = True
-    print(run_train)
-    minOccur = int(sys.argv[2])
-    batch_size = int(sys.argv[3])
-    epochs = int(sys.argv[4])
+
+    minOccur = int(sys.argv[1])
+    batch_size = int(sys.argv[2])
+    epochs = int(sys.argv[3])
+    numPatches = int(sys.argv[4])
 
     numImages, numAttributes = parse_data.getAttributes(minOccur)
 
     model = SelfConsistency(numAttributes)
 
-    if run_train:
 
-        # numImages = 7477
-        # numAttributes = 37
+    # numImages = 7477
+    # numAttributes = 37
 
-        trainEnd = numImages // 2
+    trainEnd = numImages // 2
 
-        valStart = (numImages // 2) + 1
-        valEnd = valStart + (numImages // 4)
+    valStart = (numImages // 2) + 1
+    valEnd = valStart + (numImages // 4)
 
-        testStart = valEnd + 1
-        testEnd = numImages - 1
+    testStart = valEnd + 1
+    testEnd = numImages - 1
 
-        img_data_train = ExifTrainDataset()
+    img_data_train = ExifTrainDataset()
 
-        print("----------- Loading Data -----------")
-        loader_train = DataLoader(img_data_train, batch_size=batch_size, 
-                                  sampler=sampler.SubsetRandomSampler(range(trainEnd)))
-
-
-        loader_val = DataLoader(img_data_train, batch_size=batch_size, 
-                                  sampler=sampler.SubsetRandomSampler(range(valStart, valEnd)))
-
-        loader_test = DataLoader(img_data_train, batch_size=batch_size, 
-                                sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
+    print("----------- Loading Data -----------")
+    loader_train = DataLoader(img_data_train, batch_size=batch_size, 
+                              sampler=sampler.SubsetRandomSampler(range(trainEnd)))
 
 
-        print("----------- Finished Loading Data -----------")
-        model = SelfConsistency(numAttributes)
-        lr = 1e-4
-        optimizer = optim.Adam(model.parameters(), lr=lr)
-        train(model, optimizer, loader_train, loader_val, epochs=epochs)
-        print("----------- Testing -----------")
-        check_accuracy_train(loader_test, model)
+    loader_val = DataLoader(img_data_train, batch_size=batch_size, 
+                              sampler=sampler.SubsetRandomSampler(range(valStart, valEnd)))
 
-    else:
+    loader_test = DataLoader(img_data_train, batch_size=batch_size, 
+                            sampler=sampler.SubsetRandomSampler(range(testStart, testEnd)))
 
-        img_columbia = Columbia()
 
-        #loader_test = sampler.SequentialSampler(img_columbia)
-        #loader_test = DataLoader(img_columbia, batch_size=batch_size, sampler=sampler.SequentialSampler(img_columbia))
+    print("----------- Finished Loading Data -----------")
+    model = SelfConsistency(numAttributes)
+    lr = 1e-4
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    train(model, optimizer, loader_train, loader_val, epochs=epochs)
+    print("----------- Testing -----------")
+    check_accuracy_train(loader_test, model)
 
-        test_columbia(model, img_columbia)
+
+    img_columbia = Columbia()
+
+    test_columbia(model, img_columbia, numPatches)
 
 if __name__ == '__main__':
     main()
