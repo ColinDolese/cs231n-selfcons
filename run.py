@@ -272,7 +272,7 @@ def main():
     model = SelfConsistency(numAttributes)
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    if !testBestModel:
+    if not testBestModel:
 
         if loadTrainModel:
             checkpoint = torch.load('model_train.pt')
