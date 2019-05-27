@@ -336,6 +336,7 @@ def test_columbia(model, loader_test, numPatches):
                         else :
                             scores[k,l] = 1.0
 
+                print(scores)
                 if torch.sum(scores) < (numPatches*numPatches // 2):
                     tamper += 1
 
