@@ -83,15 +83,16 @@ def check_accuracy_train(loader, model):
                 patch1 = x[b, :, xInd1:xInd1+128, yInd1:yInd1+128]
                 X[b, 0, :, :, :] = patch1
                 Y[b, 0] = y[b]
-                copy = bool(random.randint(0, 1))
+                #copy = bool(random.randint(0, 1))
 
 
-                if copy:
+                if b < N // 2:
                     patch2 = x[b, :, xInd2:xInd2+128, yInd2:yInd2+128]
                     Y[b, 1] = y[b]
 
                 else:
-                    patch2Ind = random.randint(0, N-1)
+                    patch2Ind = random.choice([ind for ind in range(N-1) if ind != b])
+                    #patch2Ind = random.randint(0, N-1)
                     patch2 = x[patch2Ind, :, xInd2:xInd2+128, yInd2:yInd2+128]
                     Y[b, 1] = y[patch2Ind]
 
@@ -206,17 +207,16 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
                 patch1 = x[b, :, xInd1:xInd1+128, yInd1:yInd1+128]
                 X[b, 0, :, :, :] = patch1
                 Y[b, 0] = y[b]
-                copy = bool(random.randint(0, 1))
+                #copy = bool(random.randint(0, 1))
 
 
-                if copy:
+                if b < N // 2:
                     patch2 = x[b, :, xInd2:xInd2+128, yInd2:yInd2+128]
                     Y[b, 1] = y[b]
 
                 else:
-                    patch2Ind = random.randint(0, N-1)
-                    patch2 = x[patch2Ind, :, xInd2:xInd2+128, yInd2:yInd2+128]
-                    Y[b, 1] = y[patch2Ind]
+                    patch2Ind = random.choice([ind for ind in range(N-1) if ind != b])
+                    #patch2Ind = random.randint(0, N-1)
 
                 X[b, 1, :, :, :] = patch2
 
@@ -400,7 +400,7 @@ def main():
     if not testBestModel:
 
         if loadTrainModel:
-            checkpoint = torch.load('model_train.pt')
+            checkpoint = torch.load('model.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             epoch = checkpoint['epoch']
