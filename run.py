@@ -336,7 +336,6 @@ def test_columbia(model, loader_test, numPatches):
                         testX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,k:k+xSize-1, l:l+ySize-1]
                         pair = torch.stack([curX, testX]).to(device=device, dtype=torch.float)
                         pair = torch.unsqueeze(pair, 0)
-                        print(pair[0, :, :,centerX:centerX + xSize-1, centerY:centerY+ySize-1])
 
                         classScores, exifScores = model(pair)
                         print(classScores)
@@ -347,7 +346,6 @@ def test_columbia(model, loader_test, numPatches):
                 if torch.sum(scores) < (numPatches*numPatches // 2):
                     tamper += 1
 
-        print(tamper)
         tamper = (tamper > 8)
         truth = (y == 1)
 
