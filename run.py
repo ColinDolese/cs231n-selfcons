@@ -144,7 +144,7 @@ def check_accuracy_train(loader, model):
         print('Got %d / %d classes correct (%.2f)' % (num_correct, num_samples, 100 * classAcc))
 
 
-def train(model, optimizer, loader_train, loader_val, epochs=1):
+def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
     """
     Train a model on CIFAR-10 using the PyTorch Module API.
     
@@ -157,8 +157,8 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
     """
     lossFunc = nn.BCELoss()
     model = model.to(device=device)  # move the model parameters to CPU/GPU
-    for e in range(epochs):
-        print("----------- Starting  Epoch " + str(e) + " -----------")
+    for e in range(startEpoch, epochs):
+        print("----------- Starting  Epoch " + str(e + 1) + " -----------")
         for t, (x, y, i) in enumerate(loader_train):
             print('Iteration %d' % (t))
             model.train()  # put model to training mode
@@ -358,19 +358,20 @@ def main():
         loader_val = DataLoader(img_data_train, batch_size=batch_size, 
                                   sampler=sampler.SubsetRandomSampler(range(valStart, numImages-1)))
 
+        startEpoch = 0
         if loadTrainModel:
             checkpoint = torch.load('model.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             model.to(device)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            epoch = checkpoint['epoch']
+            startEpoch = checkpoint['epoch']
             print("Loaded model trained with " + str(epoch) + " epochs")
             check_accuracy_train(loader_val, model)
 
 
         print("----------- Finished Loading Data -----------")
 
-        train(model, optimizer, loader_train, loader_val, epochs=epochs)
+        train(model, optimizer, loader_train, loader_val, epochs=epochs, startEpoch=startEpoch)
 
         print("----------- Testing -----------")
 
