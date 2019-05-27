@@ -102,37 +102,6 @@ def check_accuracy_train(loader, model):
             x = X.to(device=device, dtype=dtype)  # move to device, e.g. GPU
             y = Y.to(device=device, dtype=torch.float)
 
-            # halfN = N // 2
-
-            # if N % 2 != 0:
-            #     continue
-
-            # copyInd = random.randint(0,(halfN)-1)
-
-            # xCopy = x[copyInd:copyInd+halfN, :, :, :]
-            # yCopy = y[copyInd:copyInd+halfN]
-
-            # x = torch.reshape(x, (N//2, 2, C, H, W))
-            # y = torch.reshape(y, (N//2, 2))
-
-            # xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
-            # xFinal[:N//2, :, :, :] = x
-
-            # for h in range(halfN):
-            #     xFinal[N//2+h, 0, :, :, :] = xCopy[h]
-            #     xFinal[N//2+h, 1, :, :, :] = xCopy[h]
-
-            # yFinal = torch.zeros((N//2 + halfN, 2))
-            # yFinal[:N//2, :] = y
-            # for h in range(halfN):
-            #     yFinal[N//2+h, 0] = yCopy[h]
-            #     yFinal[N//2+h, 1] = yCopy[h]
-
-            # x = xFinal
-            # y = yFinal
-
-            # x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            # y = y.to(device=device, dtype=torch.float)
 
             classScores, exifScores = model(x)
 
@@ -224,37 +193,6 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             x = X.to(device=device, dtype=dtype)  # move to device, e.g. GPU
             y = Y.to(device=device, dtype=torch.float)
 
-            # halfN = N // 2
-
-            # if N % 2 != 0:
-            #     continue
-
-            # copyInd = random.randint(0,(halfN)-1)
-
-            # xCopy = x[copyInd:copyInd+halfN, :, :, :]
-            # yCopy = y[copyInd:copyInd+halfN]
-
-            # x = torch.reshape(x, (N//2, 2, C, H, W))
-            # y = torch.reshape(y, (N//2, 2))
-
-            # xFinal = torch.zeros((N//2 + halfN, 2, C, H, W))
-            # xFinal[:N//2, :, :, :] = x
-
-            # for h in range(halfN):
-            #     xFinal[N//2+h, 0, :, :, :] = xCopy[h]
-            #     xFinal[N//2+h, 1, :, :, :] = xCopy[h]
-
-            # yFinal = torch.zeros((N//2 + halfN, 2))
-            # yFinal[:N//2, :] = y
-            # for h in range(halfN):
-            #     yFinal[N//2+h, 0] = yCopy[h]
-            #     yFinal[N//2+h, 1] = yCopy[h]
-
-            # x = xFinal
-            # y = yFinal
-
-            # x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            # y = y.to(device=device, dtype=torch.float)
 
             classScores, exifScores = model(x)
             exifTarget = []
@@ -341,8 +279,6 @@ def test_columbia(model, loader_test, numPatches):
                         pair = torch.unsqueeze(pair, 0)
 
                         classScores, exifScores = model(pair)
-                        if classScores[0,0,0] < 0.7:
-                            print(classScores[0,0,0])
                         if classScores[0,0,0] < 0.5:
                             scores[k,l] = 0.0
                         else :
@@ -408,17 +344,6 @@ def main():
 
     if not testBestModel:
 
-        if loadTrainModel:
-            checkpoint = torch.load('model.pt')
-            model.load_state_dict(checkpoint['model_state_dict'])
-            model.to(device)
-            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            epoch = checkpoint['epoch']
-            print("Loaded model trained with " + str(epoch) + " epochs")
-
-
-        # numImages = 7477
-        # numAttributes = 37
 
         valStart = max((numImages // 2) + 1, numImages - 100)
 
@@ -433,6 +358,14 @@ def main():
         loader_val = DataLoader(img_data_train, batch_size=batch_size, 
                                   sampler=sampler.SubsetRandomSampler(range(valStart, numImages-1)))
 
+        if loadTrainModel:
+            checkpoint = torch.load('model.pt')
+            model.load_state_dict(checkpoint['model_state_dict'])
+            model.to(device)
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            epoch = checkpoint['epoch']
+            print("Loaded model trained with " + str(epoch) + " epochs")
+            check_accuracy_train(loader_val, model)
 
 
         print("----------- Finished Loading Data -----------")
