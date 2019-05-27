@@ -314,8 +314,11 @@ def test_columbia(model, loader_test, numPatches):
 
         xSize = 128 - numPatches
         ySize = 128 - numPatches
-        tamper = 0
+        tamper = False
         for i in range(numPatches):
+
+            if tamper:
+                break
 
             for j in range(numPatches):
                 scores = torch.zeros((numPatches,numPatches))
@@ -343,9 +346,9 @@ def test_columbia(model, loader_test, numPatches):
                         else :
                             scores[k,l] = 1.0
                 if torch.sum(scores) < (numPatches*numPatches // 2):
-                    tamper += 1
+                    tamper = True
+                    break
 
-        tamper = (tamper > 2)
         truth = (y == 1)
 
         print("Image " + str(index + 1) + " classified as tamper = " + str(tamper))
