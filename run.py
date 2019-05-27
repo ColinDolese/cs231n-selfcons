@@ -313,6 +313,7 @@ def test_columbia(model, loader_test, numPatches):
                 scores = torch.zeros((numPatches,numPatches))
                 scores[i,j] = 1.0           
                 curX = torch.zeros((3,128,128))
+                print(curX)
                 centerX = numPatches // 2
                 centerY = numPatches // 2
                 curX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,i:i+xSize-1, j:j+ySize-1]
@@ -326,7 +327,7 @@ def test_columbia(model, loader_test, numPatches):
 
                         testX = torch.zeros((3,128,128))
                         testX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,k:k+xSize-1, l:l+ySize-1]
-
+                        print(testX)
                         pair = torch.stack([curX, testX]).to(device=device, dtype=torch.float)
                         pair = torch.unsqueeze(pair, 0)
 
