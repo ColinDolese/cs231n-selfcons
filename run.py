@@ -267,7 +267,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
             exifLoss = lossFunc(exifScores, exifTarget)
             classTarget = y[0] == y[1]
             print(classTarget)
-
+            print(classScores)
             classTarget = classTarget.to(device=device, dtype=torch.float)
             classLoss = lossFunc(classScores, classTarget)
             totalLoss = sum([exifLoss, classLoss])
