@@ -47,7 +47,8 @@ class Columbia(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Columbia", transform=transform)
+        self.data = dset.ImageFolder("./Columbia", transform=transform)
+        #self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Columbia", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
@@ -306,14 +307,12 @@ def test_columbia(model, loader_test, numPatches):
         xSize = 128 - numPatches
         ySize = 128 - numPatches
         tamper = 0
-
         for i in range(numPatches):
 
             for j in range(numPatches):
                 scores = torch.zeros((numPatches,numPatches))
                 scores[i,j] = 1.0           
                 curX = torch.zeros((3,128,128))
-                print(curX)
                 centerX = numPatches // 2
                 centerY = numPatches // 2
                 curX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,i:i+xSize-1, j:j+ySize-1]
@@ -327,9 +326,9 @@ def test_columbia(model, loader_test, numPatches):
 
                         testX = torch.zeros((3,128,128))
                         testX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,k:k+xSize-1, l:l+ySize-1]
-                        print(testX)
                         pair = torch.stack([curX, testX]).to(device=device, dtype=torch.float)
                         pair = torch.unsqueeze(pair, 0)
+                        #print(pair[0, :, :,centerX:centerX + xSize-1, centerY:centerY+ySize-1])
 
                         classScores, exifScores = model(pair)
                         print(classScores)
@@ -337,8 +336,6 @@ def test_columbia(model, loader_test, numPatches):
                             scores[k,l] = 0.0
                         else :
                             scores[k,l] = 1.0
-
-                print(scores)
                 if torch.sum(scores) < (numPatches*numPatches // 2):
                     tamper += 1
 
