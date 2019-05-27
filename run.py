@@ -345,7 +345,7 @@ def test_columbia(model, loader_test, numPatches):
                 if torch.sum(scores) < (numPatches*numPatches // 2):
                     tamper += 1
 
-        tamper = (tamper > 8)
+        tamper = (tamper > 2)
         truth = (y == 1)
 
         print("Image " + str(index + 1) + " classified as tamper = " + str(tamper))
