@@ -263,14 +263,30 @@ def train(model, optimizer, loader_train, loader_val, epochs=1):
                 exifTarget.append(exifVec)
 
             y = y.permute(1,0)
+
+            exifScores = torch.squeeze(exifScores, dim=1)
+            exifScores_opp = torch.ones_like(exifScores) - exifScores
+            exifScores = torch.cat([exifScores_opp, exifScores], dim=1)
+
             exifTarget = torch.stack(exifTarget).to(device=device, dtype=torch.float)
+            exifTarget_opp = torch.ones_like(exifTarget) - exifTarget
+            exifTarget = torch.cat([exifTarget_opp, exifTarget], dim=1)
+
             exifLoss = lossFunc(exifScores, exifTarget)
+
             classTarget = y[0] == y[1]
-            print(classTarget)
-            print(classScores)
+            classTarget_opp = torch.ones_like(classTarget) - classTarget
+            classTarget = torch.stack([classTarget_opp, classTarget])
             classTarget = classTarget.to(device=device, dtype=torch.float)
+
+            classScores = torch.reshape(classScores, (N,))
+            print(classScores)
+            classScores_opp = torch.ones_like(classScores) - classScores
+            classScores = torch.stack([classScores_opp, classScores])
+
             classLoss = lossFunc(classScores, classTarget)
             totalLoss = sum([exifLoss, classLoss])
+
             print("Exif Loss: " + str(exifLoss))
             print("Class Loss: " + str(classLoss))
             print("Total Loss: " + str(totalLoss))
