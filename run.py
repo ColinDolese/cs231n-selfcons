@@ -22,6 +22,7 @@ import numpy as np
 class ExifTrainDataset(torch.utils.data.Dataset): 
     def __init__(self): 
         transform = T.Compose([
+                T.CenterCrop(2048),
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
