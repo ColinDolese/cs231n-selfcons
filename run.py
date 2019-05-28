@@ -201,7 +201,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
             classTarget = classTarget.to(device=device, dtype=torch.float)
 
             classScores = torch.reshape(classScores, (N,))
-
+            print(classTarget)
             print(classScores)
 
             classLoss = lossFunc(classScores, classTarget)
