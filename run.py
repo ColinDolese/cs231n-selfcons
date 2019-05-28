@@ -365,7 +365,7 @@ def main():
             model.to(device)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             startEpoch = checkpoint['epoch']
-            print("Loaded model trained with " + str(epoch) + " epochs")
+            print("Loaded model trained with " + str(startEpoch) + " epochs")
             check_accuracy_train(loader_val, model)
 
 
