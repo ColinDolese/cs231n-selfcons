@@ -151,8 +151,6 @@ def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
         print("----------- Starting  Epoch " + str(e + 1) + " -----------")
         for t, (x, y, i) in enumerate(loader_train):
             print('Iteration %d' % (t))
-            print(x.shape)
-            print(x[0])
             model.train()  # put model to training mode
             N, C, H, W = x.shape
 
