@@ -213,7 +213,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
             optimizer.step()
 
             if t % 100 == 0 and t > 0:
-                check_accuracy_train(loader_val, model)
+                #check_accuracy_train(loader_val, model)
                 print()
 
         print("Saving model at epoch: " + str(e))
