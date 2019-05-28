@@ -22,7 +22,6 @@ import numpy as np
 class ExifTrainDataset(torch.utils.data.Dataset): 
     def __init__(self): 
         transform = T.Compose([
-                T.CenterCrop(2048),
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
@@ -30,15 +29,8 @@ class ExifTrainDataset(torch.utils.data.Dataset):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
-        #target = parse_data.get_attribute_vec(index)
-        #y = torch.from_numpy(target).float().to(self.device)
         target = self.data[index][1]
         x = self.data[index][0]
-        #xInd = random.randint(0, 2048-128)
-        #yInd = random.randint(0, 2048-128)
-        #x = x[:, xInd:xInd+128, yInd:yInd+128]
-        #x = x.narrow(1, xInd, 128)
-        #x = x.narrow(2, yInd, 128)
         return (x, target, index)
 
 class Columbia(torch.utils.data.Dataset): 
@@ -75,25 +67,22 @@ def check_accuracy_train(loader, model):
             Y = torch.zeros(N, 2)
 
             for b in range(N):
-                xInd1 = random.randint(0, 2048-128)
-                yInd1 = random.randint(0, 2048-128)
+                xInd1 = random.randint(0, H-128)
+                yInd1 = random.randint(0, W-128)
 
-                xInd2 = random.randint(0, 2048-128)
-                yInd2 = random.randint(0, 2048-128)
+                xInd2 = random.randint(0, H-128)
+                yInd2 = random.randint(0, W-128)
 
                 patch1 = x[b, :, xInd1:xInd1+128, yInd1:yInd1+128]
                 X[b, 0, :, :, :] = patch1
                 Y[b, 0] = y[b]
-                #copy = bool(random.randint(0, 1))
-
 
                 if b < N // 2:
                     patch2 = x[b, :, xInd2:xInd2+128, yInd2:yInd2+128]
                     Y[b, 1] = y[b]
 
                 else:
-                    patch2Ind = random.choice([ind for ind in range(N-1) if ind != b])
-                    #patch2Ind = random.randint(0, N-1)
+                    patch2Ind = random.choice([ind for ind in range(N) if ind != b])
                     patch2 = x[patch2Ind, :, xInd2:xInd2+128, yInd2:yInd2+128]
                     Y[b, 1] = y[patch2Ind]
 
@@ -164,29 +153,27 @@ def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
             model.train()  # put model to training mode
             N, C, H, W = x.shape
 
+
             X = torch.zeros(N, 2, C, 128, 128)
             Y = torch.zeros(N, 2)
 
             for b in range(N):
-                xInd1 = random.randint(0, 2048-128)
-                yInd1 = random.randint(0, 2048-128)
+                xInd1 = random.randint(0, H-128)
+                yInd1 = random.randint(0, W-128)
 
-                xInd2 = random.randint(0, 2048-128)
-                yInd2 = random.randint(0, 2048-128)
+                xInd2 = random.randint(0, H-128)
+                yInd2 = random.randint(0, W-128)
 
                 patch1 = x[b, :, xInd1:xInd1+128, yInd1:yInd1+128]
                 X[b, 0, :, :, :] = patch1
                 Y[b, 0] = y[b]
-                #copy = bool(random.randint(0, 1))
-
 
                 if b < N // 2:
                     patch2 = x[b, :, xInd2:xInd2+128, yInd2:yInd2+128]
                     Y[b, 1] = y[b]
 
                 else:
-                    patch2Ind = random.choice([ind for ind in range(N-1) if ind != b])
-                    #patch2Ind = random.randint(0, N-1)
+                    patch2Ind = random.choice([ind for ind in range(N) if ind != b])
 
                 X[b, 1, :, :, :] = patch2
 
@@ -250,41 +237,55 @@ def test_columbia(model, loader_test, numPatches):
         x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
         _, xDim, yDim = x.shape
 
+        C, H, W = x.shape
+        print(x.shape)
+        hStride = 128
+        wStride = 128
+        if H > W:
+
+            hPatches = numPatches
+            hStride = int(H / hPatches)
+            wPatches = (W * hatches) / H
+            wStride = int(W / wPatches)
+
+        else :
+            wPatches = numPatches
+            wStride = int(W / wPatches)
+            hPatches = (H * wPatches) / W
+            hStride = int(H / hPatches)
+
         xSize = 128 - numPatches
         ySize = 128 - numPatches
         tamper = False
-        for i in range(numPatches):
+        for i in range(0, H, hStride):
 
             if tamper:
                 break
 
-            for j in range(numPatches):
-                scores = torch.zeros((numPatches,numPatches))
-                scores[i,j] = 1.0           
+            for j in range(0, W, wStride):
+          
                 curX = torch.zeros((3,128,128))
-                centerX = numPatches // 2
-                centerY = numPatches // 2
-                curX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,i:i+xSize-1, j:j+ySize-1]
+                curX[:,:,:] = x[:,i:i+128, j:j+128]
 
-                for k in range(numPatches):
+                numTamper = 0
 
-                    for l in range(numPatches):
+                for k in range(0, H, hStride):
+
+                    for l in range(0, W, wStride):
 
                         if k==i and l == j:
                             continue
 
                         testX = torch.zeros((3,128,128))
-                        testX[:,centerX:centerX + xSize-1, centerY:centerY+ySize-1] = x[:,k:k+xSize-1, l:l+ySize-1]
+                        testX[:,:,:] = x[:,k:k+128, l:l+128]
                         pair = torch.stack([curX, testX]).to(device=device, dtype=torch.float)
                         pair = torch.unsqueeze(pair, 0)
 
                         classScores, exifScores = model(pair)
                         if classScores[0,0,0] < 0.5:
-                            scores[k,l] = 0.0
-                        else :
-                            scores[k,l] = 1.0
+                            numTamper += 1
 
-                if torch.sum(scores) < (numPatches*numPatches // 2):
+                if numTamper > (hPatches*wPatches // 2):
                     tamper = True
                     break
 
