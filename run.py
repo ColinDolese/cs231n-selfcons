@@ -49,6 +49,21 @@ class Columbia(torch.utils.data.Dataset):
         x = self.data[index][0]
         return (x, target, index)
 
+class Cover(torch.utils.data.Dataset): 
+    def __init__(self): 
+        transform = T.Compose([
+                T.ToTensor(),
+                T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+            ])
+        #self.data = dset.ImageFolder("./Cover", transform=transform)
+        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    def __getitem__(self, index): 
+        target = self.data[index][1]
+        x = self.data[index][0]
+        return (x, target, index)
+
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 dtype = torch.float
@@ -223,7 +238,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
             'optimizer_state_dict': optimizer.state_dict()
             }, 'model.pt')
 
-def test_columbia(model, loader_test, numPatches):
+def test(model, loader_test, numPatches):
 
     tp = 0
     tn = 0
@@ -239,31 +254,17 @@ def test_columbia(model, loader_test, numPatches):
         _, xDim, yDim = x.shape
 
         C, H, W = x.shape
-        print(x.shape)
         hStride = 128
         wStride = 128
         if H > W:
 
             hPatches = numPatches
-            #hStride = int(H / hPatches)
-            #hStride = 48
-            #print(hStride)
-           # wPatches = (W * hatches) / H
-            # wStride = int(W / wPatches)
             wStride = int((W * hStride) / H)
-            #print(wStride)
 
         else :
             wPatches = numPatches
-            #wStride = int(W / wPatches)
-            #print(wStride)
-            #hPatches = (H * wPatches) / W
-            # hStride = int(H / hPatches)
             hStride = int((H * wStride) / W)
-            #print(hStride)
 
-        xSize = 128 - numPatches
-        ySize = 128 - numPatches
         tamper = False
         for i in range(0, H, hStride):
 
@@ -360,7 +361,8 @@ def main():
     epochs = int(sys.argv[3])
     numPatches = int(sys.argv[4])
     loadTrainModel = bool(int(sys.argv[5]))
-    testBestModel = bool(int(sys.argv[6]))
+    testBestModelColumbia = bool(int(sys.argv[6]))
+    testBestModelCover= bool(int(sys.argv[7]))
 
     numImages, numAttributes = parse_data.getAttributes(minOccur)
 
@@ -368,7 +370,7 @@ def main():
     model = SelfConsistency(numAttributes)
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    if not testBestModel:
+    if not testBestModelColumbia and not testBestModelCover:
 
 
         valStart = max((numImages // 2) + 1, numImages - 100)
@@ -405,11 +407,17 @@ def main():
         torch.save(model, "model_best.pt")
 
 
-    else:
+    elif testBestModelColumbia:
 
         model = torch.load("model_best.pt")
         img_columbia = Columbia()
-        test_columbia(model, img_columbia, numPatches)
+        test(model, img_columbia, numPatches)
+
+    elif testBestModelCover:
+
+        model = torch.load("model_best.pt")
+        img_cover = Cover()
+        test(model, img_cover, numPatches)
 
 if __name__ == '__main__':
     main()
