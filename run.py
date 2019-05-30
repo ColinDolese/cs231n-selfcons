@@ -55,8 +55,8 @@ class Cover(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        self.data = dset.ImageFolder("./Cover", transform=transform)
-        #self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
+        #self.data = dset.ImageFolder("./Cover", transform=transform)
+        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
