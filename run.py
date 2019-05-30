@@ -305,7 +305,6 @@ def test_columbia(model, loader_test, numPatches):
 
                         classScores, exifScores = model(pair)
 
-                        print(classScores)
                         if classScores[0,0,0] < 0.5:
                             numTamper += 1
 
