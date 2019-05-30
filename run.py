@@ -312,6 +312,8 @@ def test(model, loader_test, numPatches):
                         patchCount += 1
 
                 if numTamper > (patchCount // 2):
+                    print(patchCount)
+                    print((patchCount // 2))
                     print(numTamper)
                     tamper = True
                     break
