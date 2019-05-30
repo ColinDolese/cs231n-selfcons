@@ -40,8 +40,8 @@ class Columbia(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        #self.data = dset.ImageFolder("./Columbia", transform=transform)
-        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Columbia", transform=transform)
+        self.data = dset.ImageFolder("./Columbia", transform=transform)
+        #self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Columbia", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
@@ -245,34 +245,55 @@ def test_columbia(model, loader_test, numPatches):
         if H > W:
 
             hPatches = numPatches
-            hStride = int(H / hPatches)
-            wPatches = (W * hatches) / H
-            wStride = int(W / wPatches)
+            #hStride = int(H / hPatches)
+            #hStride = 48
+            #print(hStride)
+           # wPatches = (W * hatches) / H
+            # wStride = int(W / wPatches)
+            wStride = int((W * hStride) / H)
+            #print(wStride)
 
         else :
             wPatches = numPatches
-            wStride = int(W / wPatches)
-            hPatches = (H * wPatches) / W
-            hStride = int(H / hPatches)
+            #wStride = int(W / wPatches)
+            #print(wStride)
+            #hPatches = (H * wPatches) / W
+            # hStride = int(H / hPatches)
+            hStride = int((H * wStride) / W)
+            #print(hStride)
 
         xSize = 128 - numPatches
         ySize = 128 - numPatches
         tamper = False
         for i in range(0, H, hStride):
 
+            if i > H - 128:
+                continue
+
             if tamper:
                 break
 
             for j in range(0, W, wStride):
+
+                if j > W - 128:
+                    continue
           
                 curX = torch.zeros((3,128,128))
                 curX[:,:,:] = x[:,i:i+128, j:j+128]
 
                 numTamper = 0
 
+                patchCount = 0
+
                 for k in range(0, H, hStride):
 
+                    if k > H - 128:
+                        continue
+
                     for l in range(0, W, wStride):
+
+                        if l > W - 128:
+                            continue
 
                         if k==i and l == j:
                             continue
@@ -283,10 +304,14 @@ def test_columbia(model, loader_test, numPatches):
                         pair = torch.unsqueeze(pair, 0)
 
                         classScores, exifScores = model(pair)
+
+                        print(classScores)
                         if classScores[0,0,0] < 0.5:
                             numTamper += 1
 
-                if numTamper > (hPatches*wPatches // 2):
+                        patchCount += 1
+
+                if numTamper > (patchCount // 2):
                     tamper = True
                     break
 
