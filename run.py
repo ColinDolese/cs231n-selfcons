@@ -324,10 +324,11 @@ def test(model, loader_test, numPatches):
 
                         patchCount += 1
 
+                print(numTamper)
                 if float(numTamper) / (patchCount - 1) > tamperScore:
                     tamperScore = float(numTamper) / (patchCount - 1)
-                # if numTamper > (patchCount // 2):
-                #     tamper = True
+                if numTamper > ((patchCount - 1) // 2):
+                    print("this!")
 
 
                 #response_map_counts[response_map_counts == 0.0] = 1.0
