@@ -261,8 +261,8 @@ def test(model, loader_test, numPatches):
         response_maps = []
 
         C, H, W = x.shape
-        hStride = 64
-        wStride = 64
+        hStride =128
+        wStride = 128
 
         if H > W:
 
@@ -332,11 +332,12 @@ def test(model, loader_test, numPatches):
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
                 #T.ToPILImage()(response_map.cpu().detach()).show()
                 #img = T.ToPILImage()(response_map.cpu().detach())
-                #img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
+                img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
                 response_maps.append(response_map)
 
 
         response_maps = torch.stack(response_maps)
+
         print(response_maps.shape)
         final_map = torch.mean(response_maps, 0)
         print(final_map.shape)
