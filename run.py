@@ -261,8 +261,8 @@ def test(model, loader_test, numPatches):
         response_maps = []
 
         C, H, W = x.shape
-        hStride = 64
-        wStride = 64
+        hStride = 128
+        wStride = 128
 
         if H > W:
 
@@ -278,9 +278,6 @@ def test(model, loader_test, numPatches):
 
             if i > H - 128:
                 continue
-
-            if tamper:
-                break
 
             for j in range(0, W, wStride):
 
@@ -322,12 +319,11 @@ def test(model, loader_test, numPatches):
 
                         patchCount += 1
 
-                #if numTamper > (patchCount // 2):
-                    #print(patchCount)
-                    #print((patchCount // 2))
-                    #print(numTamper)
-                    #tamper = True
-                    #break
+                if numTamper > (patchCount // 2):
+                    print(patchCount)
+                    print((patchCount // 2))
+                    print(numTamper)
+                    tamper = True
 
                 #plt.imshow(response_map.detach().permute(1, 2, 0))
                 #print(response_map)
@@ -335,13 +331,15 @@ def test(model, loader_test, numPatches):
                 response_map = response_map / response_map_counts
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
                 #T.ToPILImage()(response_map.cpu().detach()).show()
-                img = T.ToPILImage()(response_map.cpu().detach())
-                img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
+                #img = T.ToPILImage()(response_map.cpu().detach())
+                #img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
                 response_maps.append(response_map)
 
 
         response_maps = torch.stack(response_maps)
-        final_map = torch.mean(response_maps).squeeze(0)
+        print(response_maps.shape)
+        final_map = torch.mean(response_maps, 0)
+        print(final_map.shape)
         img = T.ToPILImage()(final_map.cpu().detach())
         img.save("maps/" + str(index) + "_final.png")
 
