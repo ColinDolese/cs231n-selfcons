@@ -262,8 +262,8 @@ def test(model, loader_test, numPatches):
         response_maps = []
 
         C, H, W = x.shape
-        hStride = 64
-        wStride = 64
+        hStride = 128
+        wStride = 128
 
         if H > W:
 
@@ -342,47 +342,47 @@ def test(model, loader_test, numPatches):
 
 
         truth = (y == 1)
-
+        tamper = tamperScore > 0.5
         y_true.append(float(truth))
         y_score.append(tamperScore)
         print("Image " + str(index + 1) + " has tamper score " + str(tamperScore))
-        print("Image " + str(index + 1) + " classified as tamper = " + str(tamperScore > 0.5))
+        print("Image " + str(index + 1) + " classified as tamper = " + str(tamper))
         print("Image " + str(index + 1) + " is actually tamper = " + str(truth))
 
-        # if tamper and truth:
-        #     tp += 1
+        if tamper and truth:
+            tp += 1
 
-        # if not tamper and not truth:
-        #     tn += 1
+        if not tamper and not truth:
+            tn += 1
 
-        # if not tamper and truth:
-        #     fn += 1
+        if not tamper and truth:
+            fn += 1
 
-        # if tamper and not truth:
-        #     fp += 1
+        if tamper and not truth:
+            fp += 1
 
     print("ap is")
     print(y_true)
     print(y_score)
     print(average_precision_score(np.asarray(y_true), np.asarray(y_score)))
-    # print("tp: " + str(tp))
-    # print("tn: " + str(tn))
-    # print("fp: " + str(fp))
-    # print("fn: " + str(fn))  
+    print("tp: " + str(tp))
+    print("tn: " + str(tn))
+    print("fp: " + str(fp))
+    print("fn: " + str(fn))  
 
-    # f1 = 0.0
-    # f1_denom = (2.0*tp + fn + fp)
+    f1 = 0.0
+    f1_denom = (2.0*tp + fn + fp)
 
-    # if f1_denom > 0.0:
-    #     f1 = 2.0*tp / f1_denom     
+    if f1_denom > 0.0:
+        f1 = 2.0*tp / f1_denom     
 
-    # mcc = 0.0
-    # mcc_denom = math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
-    # if mcc_denom > 0.0:
-    #     mcc = (tp*tn - fp*fn) / mcc_denom
+    mcc = 0.0
+    mcc_denom = math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
+    if mcc_denom > 0.0:
+        mcc = (tp*tn - fp*fn) / mcc_denom
 
-    # print("F1 score: " + str(f1))
-    # print("MCC score: " + str(mcc))
+    print("F1 score: " + str(f1))
+    print("MCC score: " + str(mcc))
 
 
 def getColor(val):
