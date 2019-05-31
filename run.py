@@ -256,6 +256,9 @@ def test(model, loader_test, numPatches):
     for x, y, index in loader_test:
         print("Testing image " + str(index + 1))
 
+        if y != 1:
+            continue
+
         x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
         _, xDim, yDim = x.shape
 
@@ -321,8 +324,8 @@ def test(model, loader_test, numPatches):
 
                         patchCount += 1
 
-                if float(numTamper) / patchCount > tamperScore:
-                    tamperScore = float(numTamper) / patchCount
+                if float(numTamper) / (patchCount - 1) > tamperScore:
+                    tamperScore = float(numTamper) / (patchCount - 1)
                 # if numTamper > (patchCount // 2):
                 #     tamper = True
 
