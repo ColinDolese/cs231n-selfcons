@@ -14,6 +14,9 @@ import torch.nn.functional as F
 import random
 from model import SelfConsistency
 from layers import SiameseNet, PatchClassifier
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt 
 
 
 
@@ -55,8 +58,8 @@ class Cover(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        #self.data = dset.ImageFolder("./Cover", transform=transform)
-        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
+        self.data = dset.ImageFolder("./Cover", transform=transform)
+        #self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
@@ -244,11 +247,12 @@ def test(model, loader_test, numPatches):
     tn = 0
     fn = 0
     fp = 0
-
+    response_maps = []
     model.eval()  # set model to evaluation mode
     for x, y, index in loader_test:
-
         print("Testing image " + str(index + 1))
+
+        response_map = torch.zeros_like(x)
 
         x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
         _, xDim, yDim = x.shape
@@ -256,6 +260,7 @@ def test(model, loader_test, numPatches):
         C, H, W = x.shape
         hStride = 128
         wStride = 128
+
         if H > W:
 
             hPatches = numPatches
@@ -283,8 +288,8 @@ def test(model, loader_test, numPatches):
                 curX[:,:,:] = x[:,i:i+128, j:j+128]
 
                 numTamper = 0
-
                 patchCount = 0
+                response_map_counts = torch.zeros_like(x)
 
                 for k in range(0, H, hStride):
 
@@ -306,17 +311,33 @@ def test(model, loader_test, numPatches):
 
                         classScores, exifScores = model(pair)
 
+                        response_map[0,k:k+128, l:l+128] += classScores[0,0,0]
+                        response_map[1,k:k+128, l:l+128] += 1.0 - classScores[0,0,0]
+                        response_map_counts[:,k:k+128, l:l+128] += 1.0
+ 
                         if classScores[0,0,0] < 0.5:
                             numTamper += 1
 
                         patchCount += 1
 
-                if numTamper > (patchCount // 2):
-                    print(patchCount)
-                    print((patchCount // 2))
-                    print(numTamper)
-                    tamper = True
-                    break
+                #if numTamper > (patchCount // 2):
+                    #print(patchCount)
+                    #print((patchCount // 2))
+                    #print(numTamper)
+                    #tamper = True
+                    #break
+
+                #plt.imshow(response_map.detach().permute(1, 2, 0))
+                #print(response_map)
+                response_map_counts[response_map_counts == 0.0] = 1.0
+                response_map = response_map / response_map_counts
+                plt.imshow(np.transpose(response_map.detach(), (1, 2, 0)), interpolation='nearest')
+                plt.show()
+        response_map = response_map / response_map_counts
+        plt.imshow(np.transpose(response_map.detach(), (1, 2, 0)), interpolation='nearest')
+        plt.show()
+                #T.ToPILImage()(response_map, std=0.1).show()
+        response_maps.append(response_map)
 
         truth = (y == 1)
 
