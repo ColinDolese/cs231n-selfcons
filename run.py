@@ -335,7 +335,7 @@ def test(model, loader_test, numPatches):
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
                 print("here")
                 #T.ToPILImage()(response_map.cpu().detach()).show()
-                img = T.ToPILImage()(response_map.cpu().detach)
+                img = T.ToPILImage()(response_map.cpu().detach())
                 img.save(str(index) + "_" + str(i) + "_" + str(j) + ".png")
 
                 #plt.show()
