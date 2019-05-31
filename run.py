@@ -17,6 +17,7 @@ from layers import SiameseNet, PatchClassifier
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt 
+from sklearn.metrics import average_precision_score
 
 
 
@@ -43,7 +44,7 @@ class Columbia(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        #self.data = dset.ImageFolder("./Columbia", transform=transform)
+        Eself.data = dset.ImageFolder("./Columbia", transform=transform)
         self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Columbia", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -58,8 +59,8 @@ class Cover(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        self.data = dset.ImageFolder("./Cover", transform=transform)
-        #self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
+        #self.data = dset.ImageFolder("./Cover", transform=transform)
+        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
@@ -247,13 +248,16 @@ def test(model, loader_test, numPatches):
     tn = 0
     fn = 0
     fp = 0
+
+    y_score = []
+    y_true = []
     response_maps = []
     model.eval()  # set model to evaluation mode
     for x, y, index in loader_test:
         print("Testing image " + str(index + 1))
 
-        if y == 0: 
-            continue
+        if index > 0:
+            break
 
         x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
         _, xDim, yDim = x.shape
@@ -261,7 +265,7 @@ def test(model, loader_test, numPatches):
         response_maps = []
 
         C, H, W = x.shape
-        hStride =128
+        hStride = 128
         wStride = 128
 
         if H > W:
@@ -288,9 +292,10 @@ def test(model, loader_test, numPatches):
                 curX[:,:,:] = x[:,i:i+128, j:j+128]
 
                 numTamper = 0
+                tamperScore = 0.0
                 patchCount = 0
-                response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
-                response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
+                #response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
+                #response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
 
                 for k in range(0, H, hStride):
 
@@ -308,78 +313,80 @@ def test(model, loader_test, numPatches):
                         pair = torch.unsqueeze(pair, 0)
 
                         classScores, exifScores = model(pair)
-                        color = getColor(classScores[0,0,0])
-                        response_map[0,k:k+128, l:l+128] += color[0]/255.0
-                        response_map[1,k:k+128, l:l+128] += color[1]/255.0
-                        response_map[2,k:k+128, l:l+128] += color[2]/255.0
-                        response_map_counts[:,k:k+128, l:l+128] += 1.0
+                        #color = getColor(classScores[0,0,0])
+                        #response_map[0,k:k+128, l:l+128] += color[0]/255.0
+                        #response_map[1,k:k+128, l:l+128] += color[1]/255.0
+                        #response_map[2,k:k+128, l:l+128] += color[2]/255.0
+                        #response_map_counts[:,k:k+128, l:l+128] += 1.0
  
                         if classScores[0,0,0] < 0.5:
                             numTamper += 1
 
                         patchCount += 1
 
-                if numTamper > (patchCount // 2):
-                    print(patchCount)
-                    print((patchCount // 2))
-                    print(numTamper)
-                    tamper = True
+                if float(numTamper) / patchCount > tamperScore:
+                    tamperScore = float(numTamper) / patchCount
+                # if numTamper > (patchCount // 2):
+                #     tamper = True
 
-                #plt.imshow(response_map.detach().permute(1, 2, 0))
-                #print(response_map)
-                response_map_counts[response_map_counts == 0.0] = 1.0
-                response_map = response_map / response_map_counts
+
+                #response_map_counts[response_map_counts == 0.0] = 1.0
+                #response_map = response_map / response_map_counts
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
                 #T.ToPILImage()(response_map.cpu().detach()).show()
-                img = T.ToPILImage()(response_map.cpu().detach())
-                img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
-                response_maps.append(response_map)
+                #img = T.ToPILImage()(response_map.cpu().detach())
+                #img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
+                #response_maps.append(response_map)
 
 
-        response_maps = torch.stack(response_maps)
-
-        print(response_maps.shape)
-        final_map = torch.mean(response_maps, 0)
-        print(final_map.shape)
-        img = T.ToPILImage()(final_map.cpu().detach())
-        img.save("maps/" + str(index) + "_final.png")
+        #response_maps = torch.stack(response_maps)
+        #final_map = torch.mean(response_maps, 0)
+        #img = T.ToPILImage()(final_map.cpu().detach())
+        #img.save("maps/" + str(index) + "_final.png")
 
 
         truth = (y == 1)
 
-        print("Image " + str(index + 1) + " classified as tamper = " + str(tamper))
+        y_true.append(float(truth))
+        y_score.append(tamperScore)
+
+        print("Image " + str(index + 1) + " classified as tamper = " + str(tamperScore > 0.5))
         print("Image " + str(index + 1) + " is actually tamper = " + str(truth))
 
-        if tamper and truth:
-            tp += 1
+        # if tamper and truth:
+        #     tp += 1
 
-        if not tamper and not truth:
-            tn += 1
+        # if not tamper and not truth:
+        #     tn += 1
 
-        if not tamper and truth:
-            fn += 1
+        # if not tamper and truth:
+        #     fn += 1
 
-        if tamper and not truth:
-            fp += 1
+        # if tamper and not truth:
+        #     fp += 1
 
-    print("tp: " + str(tp))
-    print("tn: " + str(tn))
-    print("fp: " + str(fp))
-    print("fn: " + str(fn))  
+    print("ap is")
+    print(y_true)
+    print(y_score)
+    print(average_precision_score(np.asarray(y_true), np.asarray(y_score)))
+    # print("tp: " + str(tp))
+    # print("tn: " + str(tn))
+    # print("fp: " + str(fp))
+    # print("fn: " + str(fn))  
 
-    f1 = 0.0
-    f1_denom = (2.0*tp + fn + fp)
+    # f1 = 0.0
+    # f1_denom = (2.0*tp + fn + fp)
 
-    if f1_denom > 0.0:
-        f1 = 2.0*tp / f1_denom     
+    # if f1_denom > 0.0:
+    #     f1 = 2.0*tp / f1_denom     
 
-    mcc = 0.0
-    mcc_denom = math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
-    if mcc_denom > 0.0:
-        mcc = (tp*tn - fp*fn) / mcc_denom
+    # mcc = 0.0
+    # mcc_denom = math.sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
+    # if mcc_denom > 0.0:
+    #     mcc = (tp*tn - fp*fn) / mcc_denom
 
-    print("F1 score: " + str(f1))
-    print("MCC score: " + str(mcc))
+    # print("F1 score: " + str(f1))
+    # print("MCC score: " + str(mcc))
 
 
 def getColor(val):
