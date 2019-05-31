@@ -332,7 +332,7 @@ def test(model, loader_test, numPatches):
                 #print(response_map)
                 response_map_counts[response_map_counts == 0.0] = 1.0
                 response_map = response_map / response_map_counts
-                plt.imshow(np.transpose(response_map.detach(), (1, 2, 0)), interpolation='nearest')
+                plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
                 plt.show()
         response_map = response_map / response_map_counts
         plt.imshow(np.transpose(response_map.detach(), (1, 2, 0)), interpolation='nearest')
