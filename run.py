@@ -277,7 +277,7 @@ def test(model, loader_test, numPatches):
             wPatches = numPatches
             hStride = int((H * wStride) / W)
 
-        tamper = False
+        tamperScore = 0.0
         for i in range(0, H, hStride):
 
             if i > H - 128:
@@ -292,7 +292,6 @@ def test(model, loader_test, numPatches):
                 curX[:,:,:] = x[:,i:i+128, j:j+128]
 
                 numTamper = 0
-                tamperScore = 0.0
                 patchCount = 0
                 #response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
                 #response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
@@ -324,13 +323,10 @@ def test(model, loader_test, numPatches):
 
                         patchCount += 1
 
-                if float(numTamper) / (patchCount - 1) > tamperScore:
-                    tamperScore = float(numTamper) / (patchCount - 1)
-                if numTamper > ((patchCount - 1) // 2):
-                    print(numTamper)
-                    print(((patchCount - 1) // 2))
-                    print(float(numTamper) / (patchCount - 1))
-                    print("this!")
+                if float(numTamper) / patchCount > tamperScore:
+                    tamperScore = float(numTamper) / patchCount
+                # if numTamper > ((patchCount - 1) // 2):
+                #     print("this!")
 
 
                 #response_map_counts[response_map_counts == 0.0] = 1.0
