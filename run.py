@@ -252,7 +252,7 @@ def test(model, loader_test, numPatches):
     for x, y, index in loader_test:
         print("Testing image " + str(index + 1))
 
-        if x < 190: 
+        if index < 190: 
             continue
 
         x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
