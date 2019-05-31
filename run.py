@@ -334,7 +334,10 @@ def test(model, loader_test, numPatches):
                 response_map = response_map / response_map_counts
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
                 print("here")
-                T.ToPILImage()(response_map.cpu().detach()).show()
+                #T.ToPILImage()(response_map.cpu().detach()).show()
+                img = T.ToPILImage()(response_map.cpu().detach)
+                img.save(str(index) + "_" + str(i) + "_" + str(j) + ".png")
+
                 #plt.show()
         #plt.imshow(np.transpose(response_map.detach(), (1, 2, 0)), interpolation='nearest')
         #plt.show()
