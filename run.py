@@ -346,7 +346,7 @@ def test(model, loader_test, numPatches):
 
         y_true.append(float(truth))
         y_score.append(tamperScore)
-
+        print("Image " + str(index + 1) + " has tamper score " + str(tamperScore))
         print("Image " + str(index + 1) + " classified as tamper = " + str(tamperScore > 0.5))
         print("Image " + str(index + 1) + " is actually tamper = " + str(truth))
 
