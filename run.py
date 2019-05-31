@@ -258,8 +258,8 @@ def test(model, loader_test, numPatches):
         _, xDim, yDim = x.shape
 
         C, H, W = x.shape
-        hStride = 128
-        wStride = 128
+        hStride = 64
+        wStride = 64
 
         if H > W:
 
