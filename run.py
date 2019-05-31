@@ -289,7 +289,8 @@ def test(model, loader_test, numPatches):
 
                 numTamper = 0
                 patchCount = 0
-                response_map_counts = torch.zeros_like(x)
+                response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
+                response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
 
                 for k in range(0, H, hStride):
 
