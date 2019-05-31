@@ -327,6 +327,9 @@ def test(model, loader_test, numPatches):
                 if float(numTamper) / (patchCount - 1) > tamperScore:
                     tamperScore = float(numTamper) / (patchCount - 1)
                 if numTamper > ((patchCount - 1) // 2):
+                    print(numTamper)
+                    print(((patchCount - 1) // 2))
+                    print(float(numTamper) / (patchCount - 1))
                     print("this!")
 
 
