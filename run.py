@@ -258,8 +258,8 @@ def test(model, loader_test, numPatches):
         response_maps = []
 
         C, H, W = x.shape
-        hStride = 16
-        wStride = 16
+        hStride = 24
+        wStride = 24
 
         if H > W:
 
