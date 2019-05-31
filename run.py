@@ -393,8 +393,7 @@ def test(model, loader_test, numPatches):
 
 
 def getColor(val):
-
-    group = val / 0.25
+    group = (1.0 - val) / 0.25
     x = math.floor(group)
     y = math.floor(255 * (group - x))
 
