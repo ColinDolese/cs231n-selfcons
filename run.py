@@ -265,8 +265,8 @@ def test(model, loader_test, numPatches):
         response_maps = []
 
         C, H, W = x.shape
-        hStride = 128
-        wStride = 128
+        hStride = 100
+        wStride = 100
 
         if H > W:
 
@@ -324,7 +324,6 @@ def test(model, loader_test, numPatches):
 
                         patchCount += 1
 
-                print(numTamper)
                 if float(numTamper) / (patchCount - 1) > tamperScore:
                     tamperScore = float(numTamper) / (patchCount - 1)
                 if numTamper > ((patchCount - 1) // 2):
