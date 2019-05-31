@@ -290,8 +290,8 @@ def test(model, loader_test, numPatches):
 
                 numTamper = 0
                 patchCount = 0
-                #response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
-                #response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
+                response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
+                response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
 
                 for k in range(0, H, hStride):
 
@@ -320,12 +320,18 @@ def test(model, loader_test, numPatches):
 
                         patchCount += 1
 
-                if float(numTamper) / patchCount > tamperScore:
-                    tamperScore = float(numTamper) / patchCount
+                curTamperScore = float(numTamper) / patchCount
+
+                if curTamperScore > tamperScore:
+                    tamperScore = curTamperScore
                 # if numTamper > ((patchCount - 1) // 2):
                 #     print("this!")
 
-
+                color = getColor(curTamperScore)
+                response_map[0,i:i+128, j:j+128] += color[0]/255.0
+                response_map[1,i:i+128, j:j+128] += color[1]/255.0
+                response_map[2,i:i+128, j:j+128] += color[2]/255.0
+                response_map_counts[:,j:j+128, l:l+128] += 1.0          
                 #response_map_counts[response_map_counts == 0.0] = 1.0
                 #response_map = response_map / response_map_counts
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
@@ -334,11 +340,12 @@ def test(model, loader_test, numPatches):
                 #img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
                 #response_maps.append(response_map)
 
-
+        response_map_counts[response_map_counts == 0.0] = 1.0
+        response_map = response_map / response_map_counts
         #response_maps = torch.stack(response_maps)
         #final_map = torch.mean(response_maps, 0)
-        #img = T.ToPILImage()(final_map.cpu().detach())
-        #img.save("maps/" + str(index) + "_final.png")
+        img = T.ToPILImage()(response_map.cpu().detach())
+        img.save("maps/" + str(index) + "_final.png")
 
 
         truth = (y == 1)
