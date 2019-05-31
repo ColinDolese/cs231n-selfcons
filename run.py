@@ -261,8 +261,8 @@ def test(model, loader_test, numPatches):
         response_maps = []
 
         C, H, W = x.shape
-        hStride = 24
-        wStride = 24
+        hStride = 64
+        wStride = 64
 
         if H > W:
 
@@ -336,14 +336,14 @@ def test(model, loader_test, numPatches):
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
                 #T.ToPILImage()(response_map.cpu().detach()).show()
                 img = T.ToPILImage()(response_map.cpu().detach())
-                img.save(str(index) + "_" + str(i) + "_" + str(j) + ".png")
+                img.save("maps/" + str(index) + "_" + str(i) + "_" + str(j) + ".png")
                 response_maps.append(response_map)
 
 
         response_maps = torch.stack(response_maps)
         final_map = torch.mean(response_maps).squeeze(0)
         img = T.ToPILImage()(final_map.cpu().detach())
-        img.save(str(index) + "_final.png")
+        img.save("maps/" + str(index) + "_final.png")
 
 
         truth = (y == 1)
