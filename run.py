@@ -252,14 +252,14 @@ def test(model, loader_test, numPatches):
     for x, y, index in loader_test:
         print("Testing image " + str(index + 1))
 
-        response_map = torch.zeros_like(x)
-
         x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
         _, xDim, yDim = x.shape
 
+        response_maps = []
+
         C, H, W = x.shape
-        hStride = 64
-        wStride = 64
+        hStride = 16
+        wStride = 16
 
         if H > W:
 
@@ -302,18 +302,16 @@ def test(model, loader_test, numPatches):
                         if l > W - 128:
                             continue
 
-                        if k==i and l == j:
-                            continue
-
                         testX = torch.zeros((3,128,128))
                         testX[:,:,:] = x[:,k:k+128, l:l+128]
                         pair = torch.stack([curX, testX]).to(device=device, dtype=torch.float)
                         pair = torch.unsqueeze(pair, 0)
 
                         classScores, exifScores = model(pair)
-
-                        response_map[0,k:k+128, l:l+128] += classScores[0,0,0]
-                        response_map[1,k:k+128, l:l+128] += 1.0 - classScores[0,0,0]
+                        color = getColor(classScores[0,0,0])
+                        response_map[0,k:k+128, l:l+128] += color[0]/255.0
+                        response_map[1,k:k+128, l:l+128] += color[1]/255.0
+                        response_map[2,k:k+128, l:l+128] += color[2]/255.0
                         response_map_counts[:,k:k+128, l:l+128] += 1.0
  
                         if classScores[0,0,0] < 0.5:
@@ -333,16 +331,17 @@ def test(model, loader_test, numPatches):
                 response_map_counts[response_map_counts == 0.0] = 1.0
                 response_map = response_map / response_map_counts
                 #plt.imshow(np.transpose(response_map.cpu().detach(), (1, 2, 0)), interpolation='nearest')
-                print("here")
                 #T.ToPILImage()(response_map.cpu().detach()).show()
                 img = T.ToPILImage()(response_map.cpu().detach())
                 img.save(str(index) + "_" + str(i) + "_" + str(j) + ".png")
+                response_maps.append(response_map)
 
-                #plt.show()
-        #plt.imshow(np.transpose(response_map.detach(), (1, 2, 0)), interpolation='nearest')
-        #plt.show()
-                #T.ToPILImage()(response_map, std=0.1).show()
-        response_maps.append(response_map)
+
+        response_maps = torch.stack(response_maps)
+        final_map = torch.mean(response_maps).squeeze(0)
+        img = T.ToPILImage()(final_map.cpu().detach())
+        img.save(str(index) + "_final.png")
+
 
         truth = (y == 1)
 
@@ -380,6 +379,25 @@ def test(model, loader_test, numPatches):
     print("F1 score: " + str(f1))
     print("MCC score: " + str(mcc))
 
+
+def getColor(val):
+
+    group = val / 0.25
+    x = math.floor(group)
+    y = math.floor(255 * (group - x))
+
+    if x == 0.0:
+
+        return (255, y, 0)
+
+    elif x == 1.0:
+        return (255 - y, 255, 0)
+    elif x == 2.0:
+        return (0, 255, y)
+    elif x == 3.0:
+        return (0, 255 - y, 255)
+    elif x == 4.0:
+        return (0, 0, 255)
 
 
 def main():
