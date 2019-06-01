@@ -455,7 +455,7 @@ def main():
 
         print("----------- Finished Loading Data -----------")
 
-        train(model, optimizer, loader_train, loader_val, epochs=epochs, startEpoch=startEpoch, numAttributes)
+        train(model, optimizer, loader_train, loader_val, epochs, startEpoch, numAttributes)
 
         print("----------- Testing -----------")
 
