@@ -153,7 +153,7 @@ def check_accuracy_train(loader, model):
         print('Got %d / %d classes correct (%.2f)' % (num_correct, num_samples, 100 * classAcc))
 
 
-def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
+def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0, exifSize):
     """
     Train a model on CIFAR-10 using the PyTorch Module API.
     
@@ -240,7 +240,7 @@ def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0):
             'epoch': e,
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict()
-            }, 'model.pt')
+            }, str(exifSize) + '_model.pt')
 
 def test(model, loader_test, numPatches):
 
@@ -369,8 +369,6 @@ def test(model, loader_test, numPatches):
             fp += 1
 
     print("ap is")
-    print(y_true)
-    print(y_score)
     print(average_precision_score(np.asarray(y_true), np.asarray(y_score)))
     print("tp: " + str(tp))
     print("tn: " + str(tn))
@@ -446,7 +444,7 @@ def main():
 
         startEpoch = 0
         if loadTrainModel:
-            checkpoint = torch.load('model.pt')
+            checkpoint = torch.load(str(numAttributes) + '_model.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             model.to(device)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -457,7 +455,7 @@ def main():
 
         print("----------- Finished Loading Data -----------")
 
-        train(model, optimizer, loader_train, loader_val, epochs=epochs, startEpoch=startEpoch)
+        train(model, optimizer, loader_train, loader_val, epochs=epochs, startEpoch=startEpoch, numAttributes)
 
         print("----------- Testing -----------")
 
@@ -467,13 +465,13 @@ def main():
 
     elif testBestModelColumbia:
 
-        model = torch.load("model_best.pt")
+        model = torch.load(str(numAttributes) + "_model_best.pt")
         img_columbia = Columbia()
         test(model, img_columbia, numPatches)
 
     elif testBestModelCover:
 
-        model = torch.load("model_best.pt")
+        model = torch.load(str(numAttributes) + "_model_best.pt")
         img_cover = Cover()
         test(model, img_cover, numPatches)
 
