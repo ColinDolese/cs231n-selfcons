@@ -458,6 +458,8 @@ def main():
 
         print("----------- Testing -----------")
 
+        check_accuracy_train(loader_val, model)
+
         print("Saving best model")
         torch.save(model, str(numAttributes) + "model_best.pt")
 
