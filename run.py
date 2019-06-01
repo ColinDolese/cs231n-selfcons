@@ -87,11 +87,11 @@ def check_accuracy_train(loader, model):
             Y = torch.zeros(N, 2)
 
             for b in range(N):
-                xInd1 = random.randint(0, H-128)
-                yInd1 = random.randint(0, W-128)
+                xInd1 = 0
+                yInd1 = 0
 
-                xInd2 = random.randint(0, H-128)
-                yInd2 = random.randint(0, W-128)
+                xInd2 = H // 2
+                yInd2 = W // 2
 
                 patch1 = x[b, :, xInd1:xInd1+128, yInd1:yInd1+128]
                 X[b, 0, :, :, :] = patch1
