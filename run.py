@@ -443,18 +443,12 @@ def main():
 
         startEpoch = 0
         if loadTrainModel:
-            #checkpoint = torch.load(str(numAttributes) + '_model.pt')
-            checkpoint = torch.load('model.pt')
+            checkpoint = torch.load(str(numAttributes) + '_model.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             model.to(device)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             startEpoch = checkpoint['epoch']
 
-            torch.save({
-                'epoch': startEpoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict()
-            }, str(numAttributes) + '_model.pt')
 
             print("Loaded model trained with " + str(startEpoch) + " epochs")
             check_accuracy_train(loader_val, model)
