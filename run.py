@@ -153,7 +153,7 @@ def check_accuracy_train(loader, model):
         print('Got %d / %d classes correct (%.2f)' % (num_correct, num_samples, 100 * classAcc))
 
 
-def train(model, optimizer, loader_train, loader_val, epochs=1, startEpoch=0, exifSize):
+def train(model, optimizer, loader_train, loader_val, epochs, startEpoch, exifSize):
     """
     Train a model on CIFAR-10 using the PyTorch Module API.
     
