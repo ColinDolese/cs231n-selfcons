@@ -454,7 +454,7 @@ def main():
                 'epoch': startEpoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict()
-            }, str(exifSize) + '_model.pt')
+            }, str(numAttributes) + '_model.pt')
 
             print("Loaded model trained with " + str(startEpoch) + " epochs")
             check_accuracy_train(loader_val, model)
