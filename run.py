@@ -44,8 +44,8 @@ class Columbia(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        #self.data = dset.ImageFolder("./Columbia", transform=transform)
-        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Columbia", transform=transform)
+        self.data = dset.ImageFolder("./Columbia", transform=transform)
+        #self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Columbia", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
@@ -59,8 +59,8 @@ class Cover(torch.utils.data.Dataset):
                 T.ToTensor(),
                 T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
             ])
-        #self.data = dset.ImageFolder("./Cover", transform=transform)
-        self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
+        self.data = dset.ImageFolder("./Cover", transform=transform)
+        #self.data = dset.ImageFolder("../../colin/cs231n-selfcons/Cover", transform=transform)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def __getitem__(self, index): 
@@ -242,7 +242,7 @@ def train(model, optimizer, loader_train, loader_val, epochs, startEpoch, exifSi
             'optimizer_state_dict': optimizer.state_dict()
             }, str(exifSize) + '_model.pt')
 
-def test(model, loader_test, numPatches, testName, exifSize):
+def test(model, loader_test, testName, exifSize):
 
     tp = 0
     tn = 0
@@ -267,14 +267,14 @@ def test(model, loader_test, numPatches, testName, exifSize):
 
         if H > W:
 
-            hPatches = numPatches
             wStride = int((W * hStride) / H)
 
         else :
-            wPatches = numPatches
             hStride = int((H * wStride) / W)
 
         tamperScore = 0.0
+        response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
+        response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
         for i in range(0, H, hStride):
 
             if i > H - 128:
@@ -290,8 +290,6 @@ def test(model, loader_test, numPatches, testName, exifSize):
 
                 numTamper = 0
                 patchCount = 0
-                response_map = torch.zeros_like(x).to(device=device, dtype=torch.float)
-                response_map_counts = torch.zeros_like(x).to(device=device, dtype=torch.float)
 
                 for k in range(0, H, hStride):
 
@@ -331,6 +329,7 @@ def test(model, loader_test, numPatches, testName, exifSize):
                 response_map[0,i:i+128, j:j+128] += color[0]/255.0
                 response_map[1,i:i+128, j:j+128] += color[1]/255.0
                 response_map[2,i:i+128, j:j+128] += color[2]/255.0
+
                 response_map_counts[:,j:j+128, l:l+128] += 1.0          
                 #response_map_counts[response_map_counts == 0.0] = 1.0
                 #response_map = response_map / response_map_counts
@@ -472,13 +471,13 @@ def main():
 
         model = torch.load(str(numAttributes) + "_model_best.pt")
         img_columbia = Columbia()
-        test(model, img_columbia, numPatches, "Columbia", numAttributes)
+        test(model, img_columbia, "Columbia", numAttributes)
 
     elif testBestModelCover:
 
         model = torch.load(str(numAttributes) + "_model_best.pt")
         img_cover = Cover()
-        test(model, img_cover, numPatches, "Cover", numAttributes)
+        test(model, img_cover, "Cover", numAttributes)
 
 if __name__ == '__main__':
     main()
