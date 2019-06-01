@@ -415,10 +415,9 @@ def main():
     minOccur = int(sys.argv[1])
     batch_size = int(sys.argv[2])
     epochs = int(sys.argv[3])
-    numPatches = int(sys.argv[4])
-    loadTrainModel = bool(int(sys.argv[5]))
-    testBestModelColumbia = bool(int(sys.argv[6]))
-    testBestModelCover= bool(int(sys.argv[7]))
+    loadTrainModel = bool(int(sys.argv[4]))
+    testBestModelColumbia = bool(int(sys.argv[5]))
+    testBestModelCover= bool(int(sys.argv[6]))
 
     numImages, numAttributes = parse_data.getAttributes(minOccur)
 
@@ -460,7 +459,7 @@ def main():
         print("----------- Testing -----------")
 
         print("Saving best model")
-        torch.save(model, "model_best.pt")
+        torch.save(model, str(numAttributes) + "model_best.pt")
 
 
     elif testBestModelColumbia:
