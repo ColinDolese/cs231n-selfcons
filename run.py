@@ -469,13 +469,13 @@ def main():
 
     elif testBestModelColumbia:
 
-        model = torch.load(str(numAttributes) + "_model_best.pt")
+        model = torch.load(str(numAttributes) + "model_best.pt")
         img_columbia = Columbia()
         test(model, img_columbia, "Columbia", numAttributes)
 
     elif testBestModelCover:
 
-        model = torch.load(str(numAttributes) + "_model_best.pt")
+        model = torch.load(str(numAttributes) + "model_best.pt")
         img_cover = Cover()
         test(model, img_cover, "Cover", numAttributes)
 
