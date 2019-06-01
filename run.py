@@ -242,7 +242,7 @@ def train(model, optimizer, loader_train, loader_val, epochs, startEpoch, exifSi
             'optimizer_state_dict': optimizer.state_dict()
             }, str(exifSize) + '_model.pt')
 
-def test(model, loader_test, numPatches):
+def test(model, loader_test, numPatches, testName, exifSize):
 
     tp = 0
     tn = 0
@@ -345,7 +345,7 @@ def test(model, loader_test, numPatches):
         #response_maps = torch.stack(response_maps)
         #final_map = torch.mean(response_maps, 0)
         img = T.ToPILImage()(response_map.cpu().detach())
-        img.save("maps/" + str(index) + "_final.png")
+        img.save("maps/" + str(exifSize) + "_" + str(testName) + "_" + str(index) + "_final.png")
 
 
         truth = (y == 1)
@@ -472,13 +472,13 @@ def main():
 
         model = torch.load(str(numAttributes) + "_model_best.pt")
         img_columbia = Columbia()
-        test(model, img_columbia, numPatches)
+        test(model, img_columbia, numPatches, "Columbia", numAttributes)
 
     elif testBestModelCover:
 
         model = torch.load(str(numAttributes) + "_model_best.pt")
         img_cover = Cover()
-        test(model, img_cover, numPatches)
+        test(model, img_cover, numPatches, "Cover", numAttributes)
 
 if __name__ == '__main__':
     main()
